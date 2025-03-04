@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react"
 import { X, Minus, Square } from "lucide-react"
 import { useRouter } from "next/navigation"
 
-import confetti from "https://cdn.jsdelivr.net/npm/@tsparticles/confetti@3.0.3/tsparticles.confetti.bundle.min.js"
+import confetti from "confetti"
 
 interface Emoji {
   id: number

@@ -100,7 +100,7 @@ export default function NatureGamePage() {
   useEffect(() => {
     if (!confettiLoadedRef.current) {
       const script = document.createElement("script")
-      script.src = "https://cdn.jsdelivr.net/npm/@tsparticles/confetti@3.0.3/tsparticles.confetti.bundle.min.js"
+      script.src = "confetti"
       script.async = true
       script.onload = () => {
         confettiLoadedRef.current = true
