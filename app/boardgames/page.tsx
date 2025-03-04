@@ -115,7 +115,7 @@ export default function BoardGamesPage() {
           gameOver: true,
           gameWon: true,
         }
-        confetti.confetti()
+        confetti()
       } else {
         newGameState = {
           ...newGameState,

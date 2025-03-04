@@ -37,7 +37,7 @@ const checkScratchCompletion = useCallback(() => {
 
     if (percentageCleared >= 90 && !revealed) {
         setRevealed(true);
-        confetti.confetti();
+        confetti();
         ctx.clearRect(0, 0, canvasSize.width, canvasSize.height);
     }
 }, [canvasSize, revealed]);

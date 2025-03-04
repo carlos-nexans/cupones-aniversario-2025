@@ -1,0 +1,4 @@
+- [ ] Cambiar juego de naturaleza
+- [ ] A veces, en el juego de cena, no aparecen todos los ingredientes
+- [ ] Falta el cupon misterioso
+- [ ] Fix confetti
