@@ -116,7 +116,7 @@ export default function NatureGamePage() {
   // Function to safely call confetti
   const launchConfetti = useCallback(() => {
     if (window.confetti) {
-      window.confetti()
+      window.// confetti
     }
   }, [])
 
@@ -274,7 +274,7 @@ export default function NatureGamePage() {
       setTimeLeft((prev) => {
         if (prev <= 1) {
           if (confettiLoadedRef.current) {
-            launchConfetti()
+            launch// confetti
           }
           setGameOver(true)
           return 0

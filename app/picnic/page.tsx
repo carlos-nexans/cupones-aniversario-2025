@@ -119,7 +119,7 @@ export default function PicnicGamePage() {
       setTimeLeft((prev) => {
         if (prev <= 1) {
           setGameOver(true)
-          confetti()
+          // confetti
           return 0
         }
         setScore((prevScore) => prevScore + pointsPerSecond)

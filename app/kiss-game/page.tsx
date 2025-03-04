@@ -93,7 +93,7 @@ export default function KissGamePage() {
       setTimeLeft((prev) => {
         if (prev <= 1) {
           setGameOver(true)
-          confetti()
+          // confetti
           return 0
         }
         return prev - 1

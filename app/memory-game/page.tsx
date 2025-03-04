@@ -108,7 +108,7 @@ export default function MemoryCardGame() {
   useEffect(() => {
     if (gameStarted && cards.length > 0 && cards.every((card) => card.isMatched)) {
       setGameOver(true)
-      confetti()
+      // confetti
     }
   }, [cards, gameStarted])
 

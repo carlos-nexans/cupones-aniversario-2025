@@ -218,7 +218,7 @@ export default function RomanticDinnerGame() {
             } else {
               // Game won!
               setGameWon(true)
-              confetti()
+              // confetti
             }
           }
         }
