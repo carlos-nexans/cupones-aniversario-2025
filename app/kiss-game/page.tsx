@@ -9,6 +9,7 @@ import Link from "next/link"
 import GameWinFooter from "@/components/game-win-footer"
 import ImageEffect from "@/components/image-effect"
 import GameLoseFooter from "@/components/game-loose-footer"
+import { useCoupons } from "@/hooks/use-coupons"
 
 interface Emoji {
   id: number
@@ -33,7 +34,14 @@ export default function KissGamePage() {
   const [spawnRate, setSpawnRate] = useState(initialSpawnRate)
   const [disappearTime, setDisappearTime] = useState(initialDisappearTime)
   const router = useRouter()
-  
+  const { markCouponAsWon } = useCoupons()
+
+  useEffect(() => {
+    //if (score >= 0 && gameOver) {
+      markCouponAsWon(1)
+    //}
+  }, [score, gameOver])
+
   const playGoodSound = () => {
     if (typeof Audio !== 'undefined') {
       const sound = new Audio('/sounds/click-good.wav')

@@ -17,7 +17,7 @@ interface Coupon {
 
 interface CouponsState {
   totalPoints: number
-  wonCoupons: number[] // Array of coupon IDs that are won/active
+  wonCoupons: Set<number> // Changed from array to Set of coupon IDs
 }
 
 const STORAGE_KEY = "anniversary-coupons-state"
@@ -26,7 +26,7 @@ const getInitialState = (): CouponsState => {
   if (typeof window === "undefined") {
     return {
       totalPoints: 100, // Default starting points
-      wonCoupons: [],
+      wonCoupons: new Set(),
     }
   }
 
@@ -34,16 +34,20 @@ const getInitialState = (): CouponsState => {
   if (!savedState) {
     return {
       totalPoints: 100,
-      wonCoupons: [],
+      wonCoupons: new Set(),
     }
   }
 
   try {
-    return JSON.parse(savedState)
+    const parsed = JSON.parse(savedState)
+    return {
+      ...parsed,
+      wonCoupons: new Set(parsed.wonCoupons), // Convert array from storage to Set
+    }
   } catch {
     return {
       totalPoints: 100,
-      wonCoupons: [],
+      wonCoupons: new Set(),
     }
   }
 }
@@ -53,7 +57,10 @@ export const useCoupons = () => {
 
   // Persist state changes to localStorage
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      ...state,
+      wonCoupons: Array.from(state.wonCoupons), // Convert Set to array for storage
+    }))
   }, [state])
 
   // Add points to the total
@@ -76,20 +83,20 @@ export const useCoupons = () => {
   const markCouponAsWon = (couponId: number) => {
     setState((prev) => ({
       ...prev,
-      wonCoupons: [...prev.wonCoupons, couponId],
+      wonCoupons: new Set([...prev.wonCoupons, couponId]),
     }))
   }
 
   // Check if a coupon is won
   const isCouponWon = (couponId: number) => {
-    return state.wonCoupons.includes(couponId)
+    return state.wonCoupons.has(couponId)
   }
 
   // Reset all state
   const resetState = () => {
     setState({
       totalPoints: 100,
-      wonCoupons: [],
+      wonCoupons: new Set(),
     })
   }
 

@@ -4,6 +4,9 @@ import { useState, useEffect, useCallback, useRef } from "react"
 import { X, Minus, Square } from "lucide-react"
 import { useRouter } from "next/navigation"
 import confetti from "confetti"
+import { useCoupons } from "@/hooks/use-coupons"
+import GameWinFooter from "@/components/game-win-footer"
+import GameLoseFooter from "@/components/game-loose-footer"
 
 interface Ingredient {
   id: number
@@ -16,6 +19,17 @@ interface Dish {
   name: string
   emoji: string
   requiredIngredients: string[]
+}
+
+// Audio setup
+const tastySound = new Audio("/sounds/tasty.mp3")
+const deliciousSound = new Audio("/sounds/delicious.mp3")
+const looseSound = new Audio("/sounds/loose.mp3")
+
+const playRandomSuccessSound = () => {
+  const sounds = [tastySound, deliciousSound]
+  const randomSound = sounds[Math.floor(Math.random() * sounds.length)]
+  randomSound.play()
 }
 
 // All possible dishes
@@ -147,21 +161,21 @@ export default function RomanticDinnerGame() {
     // Get required ingredients for the dish
     const requiredIngredientNames = dish.requiredIngredients
 
-    // Find the actual ingredient objects
+    // Find the actual ingredient objects for required ingredients
     const requiredIngredients = requiredIngredientNames
       .map((name) => allIngredients.find((ing) => ing.name === name))
       .filter(Boolean) as Ingredient[]
 
     // Get other random ingredients, excluding the required ones
-    const remainingIngredients = allIngredients
+    const otherIngredients = allIngredients
       .filter((ing) => !requiredIngredientNames.includes(ing.name))
       .sort(() => 0.5 - Math.random())
       .slice(0, INGREDIENTS_TO_SHOW - requiredIngredients.length)
 
-    // Combine and shuffle all ingredients
-    const shuffledIngredients = [...requiredIngredients, ...remainingIngredients].sort(() => 0.5 - Math.random())
+    // Combine and shuffle all ingredients, ensuring all required ingredients are included
+    const allAvailableIngredients = [...requiredIngredients, ...otherIngredients].sort(() => 0.5 - Math.random())
 
-    setAvailableIngredients(shuffledIngredients)
+    setAvailableIngredients(allAvailableIngredients)
     setSelectedIngredients([])
     setTimeLeft(GAME_TIME)
 
@@ -208,8 +222,10 @@ export default function RomanticDinnerGame() {
 
           if (!correct) {
             setGameOver(true)
+            looseSound.play()
           } else {
             // Move to next dish
+            playRandomSuccessSound()
             if (currentDishIndex < dishes.length - 1) {
               setTimeout(() => {
                 setCurrentDishIndex((prev) => prev + 1)
@@ -240,7 +256,10 @@ export default function RomanticDinnerGame() {
     }
   }, [initializeGame])
 
+  const { markCouponAsWon } = useCoupons()
+
   const handleGameEnd = useCallback(() => {
+    markCouponAsWon(2)
     router.push("/")
   }, [router])
 
@@ -312,29 +331,16 @@ export default function RomanticDinnerGame() {
 
               {/* Game status */}
               {gameOver && !gameWon && (
-                <div className="mt-6 text-center">
-                  <p className="text-xl font-bold text-red-500 mb-2">¡Juego terminado!</p>
-                  <p className="mb-4">{timeLeft === 0 ? "¡Se acabó el tiempo!" : "¡Ingredientes incorrectos!"}</p>
+                <GameLoseFooter onRestart={initializeGame}>
                   <p className="mb-4">
                     Los ingredientes correctos eran: {dishes[currentDishIndex].requiredIngredients.join(", ")}
                   </p>
-                  <button className="pixel-button" onClick={initializeGame}>
-                    Volver a intentar
-                  </button>
-                  <button className="pixel-button ml-2" onClick={handleGameEnd}>
-                    Volver a los cupones
-                  </button>
-                </div>
+                </GameLoseFooter>
               )}
 
               {gameWon && (
-                <div className="mt-6 text-center">
-                  <p className="text-xl font-bold text-green-500 mb-2">¡Felicidades!</p>
-                  <p className="mb-4">¡Has preparado todos los platos correctamente!</p>
-                  <button className="pixel-button" onClick={handleGameEnd}>
-                    Volver a los cupones
-                  </button>
-                </div>
+                /* Cantidad de platos correctos */
+                <GameWinFooter />
               )}
             </div>
           )}

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect } from "react";
 import JSConfetti from "js-confetti";
 
-export default function GameLoseFooter({ score, onRestart }: { score?: number, onRestart: () => void }) {
+export default function GameLoseFooter({ onRestart, children }: { onRestart: () => void, children?: React.ReactNode }) {
   useEffect(() => {
     const playLooseSound = async () => {
       try {
@@ -24,6 +24,7 @@ export default function GameLoseFooter({ score, onRestart }: { score?: number, o
   return (
     <div className="mt-4 text-center">
       <p className="text-xl mb-2 font-bold">¡Lo siento! Has perdido.</p>
+      {children}
       <div className="flex justify-center gap-4">
         <button className="pixel-button" onClick={onRestart}>Intentar de nuevo</button>
         <Link href="/">
