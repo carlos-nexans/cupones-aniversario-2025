@@ -6,10 +6,14 @@ import CouponsScreen from "@/components/coupons-screen"
 import { FloatingHearts } from "@/components/floating-hearts"
 
 export default function Home() {
-  const [authenticated, setAuthenticated] = useState(false)
+  const [authenticated, setAuthenticated] = useState(() => {
+    const authCookie = localStorage.getItem("auth")
+    return authCookie ? true : false
+  })
 
   const handleAuthenticate = () => {
     setAuthenticated(true)
+    localStorage.setItem("auth", "true")
   }
 
   return (

@@ -57,7 +57,7 @@ main {
   }
 
   .pixel-button {
-    @apply relative px-4 py-2 border-2 border-black rounded-md bg-kawaii-pink text-white transition-all duration-100 active:translate-y-1;
+    @apply relative px-4 py-2 border-2 border-black rounded-md bg-kawaii-pink text-gray-900 transition-all duration-100 active:translate-y-1;
     box-shadow: 2px 2px 0 1px #000, inset 1px 1px 0 0 rgba(255, 255, 255, 0.5);
   }
 

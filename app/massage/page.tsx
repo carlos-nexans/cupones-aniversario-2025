@@ -5,6 +5,7 @@ import { X, Minus, Square } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import confetti from "confetti";
+import Link from "next/link";
 
 export default function RaspaGame() {
   const router = useRouter();
@@ -12,14 +13,20 @@ export default function RaspaGame() {
   const [isScratching, setIsScratching] = useState(false);
   const [canvasSize, setCanvasSize] = useState({ width: 400, height: 400 });
   const [revealed, setRevealed] = useState(false);
+  const prevPointRef = useRef<{ x: number; y: number } | null>(null);
 
-const checkScratchCompletion = useCallback(() => {
+  const checkScratchCompletion = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const imageData = ctx.getImageData(0, 0, canvasSize.width, canvasSize.height);
+    const imageData = ctx.getImageData(
+      0,
+      0,
+      canvasSize.width,
+      canvasSize.height
+    );
     const totalPixels = imageData.data.length / 4;
     let clearedPixels = 0;
 
@@ -27,32 +34,47 @@ const checkScratchCompletion = useCallback(() => {
     const TRANSPARENCY_THRESHOLD = 128;
 
     for (let i = 0; i < imageData.data.length; i += 4) {
-        if (imageData.data[i + 3] < TRANSPARENCY_THRESHOLD) {
-            clearedPixels++;
-        }
+      if (imageData.data[i + 3] < TRANSPARENCY_THRESHOLD) {
+        clearedPixels++;
+      }
     }
 
     const percentageCleared = (clearedPixels / totalPixels) * 100;
     console.log(`Porcentaje de raspado: ${percentageCleared.toFixed(2)}%`);
 
     if (percentageCleared >= 90 && !revealed) {
-        setRevealed(true);
-        // confetti;
-        ctx.clearRect(0, 0, canvasSize.width, canvasSize.height);
+      setRevealed(true);
+      // confetti;
+      ctx.clearRect(0, 0, canvasSize.width, canvasSize.height);
     }
-}, [canvasSize, revealed]);
+  }, [canvasSize, revealed]);
 
-  const handleMouseDown = useCallback(() => {
-    setIsScratching(true);
-  }, []);
+  const drawScratch = useCallback(
+    (ctx: CanvasRenderingContext2D, x: number, y: number) => {
+      ctx.globalCompositeOperation = "destination-out";
 
-  const handleMouseUp = useCallback(() => {
-    setIsScratching(false);
-    checkScratchCompletion();
-  }, [checkScratchCompletion]);
+      // Draw the circle at current position
+      ctx.beginPath();
+      ctx.arc(x, y, 20, 0, 2 * Math.PI);
+      ctx.fill();
+
+      // If we have a previous point, connect it to the current point
+      if (prevPointRef.current) {
+        ctx.beginPath();
+        ctx.lineWidth = 40; // Make the line width double the circle radius
+        ctx.lineCap = "round";
+        ctx.moveTo(prevPointRef.current.x, prevPointRef.current.y);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+      }
+
+      prevPointRef.current = { x, y };
+    },
+    []
+  );
 
   const handleMouseMove = useCallback(
-    (e: React.MouseEvent<HTMLCanvasElement>) => {
+    (e: MouseEvent) => {
       if (!isScratching || revealed) return;
       const canvas = canvasRef.current;
       if (!canvas) return;
@@ -64,14 +86,63 @@ const checkScratchCompletion = useCallback(() => {
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
 
-      ctx.globalCompositeOperation = "destination-out";
-      ctx.beginPath();
-      ctx.arc(x, y, 20, 0, 2 * Math.PI);
-      ctx.fill();
-      checkScratchCompletion();
+      // Only scratch if within canvas bounds
+      if (x >= 0 && x <= canvasSize.width && y >= 0 && y <= canvasSize.height) {
+        drawScratch(ctx, x, y);
+        checkScratchCompletion();
+      }
     },
-    [isScratching, revealed, checkScratchCompletion]
+    [isScratching, revealed, checkScratchCompletion, canvasSize, drawScratch]
   );
+
+  // Handle touch events
+  const handleTouchMove = useCallback(
+    (e: TouchEvent) => {
+      e.preventDefault();
+      if (!isScratching || revealed) return;
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      const touch = e.touches[0];
+      const x = touch.clientX - rect.left;
+      const y = touch.clientY - rect.top;
+
+      if (x >= 0 && x <= canvasSize.width && y >= 0 && y <= canvasSize.height) {
+        drawScratch(ctx, x, y);
+        checkScratchCompletion();
+      }
+    },
+    [isScratching, revealed, checkScratchCompletion, canvasSize, drawScratch]
+  );
+
+  useEffect(() => {
+    if (revealed) return;
+
+    const handleGlobalMouseUp = () => {
+      setIsScratching(false);
+      prevPointRef.current = null; // Reset the previous point when mouse is released
+      checkScratchCompletion();
+    };
+
+    // Add global event listeners
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleGlobalMouseUp);
+    window.addEventListener("touchmove", handleTouchMove as any, {
+      passive: false,
+    });
+    window.addEventListener("touchend", handleGlobalMouseUp);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleGlobalMouseUp);
+      window.removeEventListener("touchmove", handleTouchMove as any);
+      window.removeEventListener("touchend", handleGlobalMouseUp);
+    };
+  }, [handleMouseMove, handleTouchMove, checkScratchCompletion, revealed]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -85,7 +156,11 @@ const checkScratchCompletion = useCallback(() => {
         ctx.fillStyle = "#000";
         const text = "Raspa para ganar";
         const textWidth = ctx.measureText(text).width;
-        ctx.fillText(text, (canvasSize.width - textWidth) / 2, canvasSize.height / 2);
+        ctx.fillText(
+          text,
+          (canvasSize.width - textWidth) / 2,
+          canvasSize.height / 2
+        );
       }
     }
   }, [canvasSize]);
@@ -102,7 +177,10 @@ const checkScratchCompletion = useCallback(() => {
             <button className="p-1 hover:bg-white/10 rounded">
               <Square size={12} />
             </button>
-            <button className="p-1 hover:bg-white/10 rounded" onClick={() => router.push("/")}> 
+            <button
+              className="p-1 hover:bg-white/10 rounded"
+              onClick={() => router.push("/")}
+            >
               <X size={12} />
             </button>
           </div>
@@ -111,7 +189,7 @@ const checkScratchCompletion = useCallback(() => {
         <div className="retro-window-content justify-center flex flex-col text-center items-center">
           <div style={{ position: "relative" }} className="w-auto">
             <Image
-              src="/your-prize-image.jpg"
+              src="/images/massage.webp"
               alt="Premio"
               width={canvasSize.width}
               height={canvasSize.height}
@@ -129,17 +207,28 @@ const checkScratchCompletion = useCallback(() => {
                   touchAction: "none",
                   cursor: "pointer",
                 }}
-                onMouseDown={handleMouseDown}
-                onMouseUp={handleMouseUp}
-                onMouseMove={handleMouseMove}
-                onMouseLeave={handleMouseUp}
+                onMouseDown={(e) => {
+                  setIsScratching(true);
+                  prevPointRef.current = null; // Reset the previous point when starting to scratch
+                }}
+                onTouchStart={(e) => {
+                  setIsScratching(true);
+                  prevPointRef.current = null; // Reset the previous point when starting to scratch
+                }}
               />
             )}
           </div>
-          {revealed && <p className="mt-4 text-lg font-bold">¡Felicidades! Has ganado.</p>}
+
+          {revealed && (
+            <div className="mt-4 text-center">
+              <p className="text-xl mb-2 font-bold">¡Felicidades! Has ganado.</p>
+              <Link href="/">
+                <button className="pixel-button">Volver a los cupones</button>
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 }
-

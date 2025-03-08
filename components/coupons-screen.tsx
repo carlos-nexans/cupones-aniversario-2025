@@ -5,6 +5,7 @@ import Image from "next/image"
 import { WhatsappIcon } from "@/components/icons"
 import { X, Minus, Square, Sparkle } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { useCoupons } from "@/hooks/use-coupons"
 
 // Updated coupon data structure
 const coupons = [
@@ -99,11 +100,15 @@ const coupons = [
 ]
 
 export default function CouponsScreen() {
-  const [totalPoints, setTotalPoints] = useState(100)
+  const { totalPoints, wonCoupons, markCouponAsWon } = useCoupons()
   const router = useRouter()
 
-  const activeCoupons = coupons.filter((coupon) => coupon.status === "active")
-  const availableCoupons = coupons.filter((coupon) => coupon.status === "available")
+  const activeCoupons = coupons.filter((coupon) => wonCoupons.includes(coupon.id))
+  const availableCoupons = coupons.filter(
+    (coupon) => 
+      coupon.status === "available" && 
+      !wonCoupons.includes(coupon.id)
+  )
   const expiredCoupons = coupons
     .filter((coupon) => coupon.status === "expired")
     .sort((a, b) => new Date(b.expiryDate).getTime() - new Date(a.expiryDate).getTime())
@@ -117,7 +122,12 @@ export default function CouponsScreen() {
   }
 
   const handleObtainCoupon = (coupon: (typeof coupons)[0]) => {
-    router.push(coupon.obtainLink)
+    if (totalPoints >= coupon.points) {
+      markCouponAsWon(coupon.id)
+      router.push(coupon.obtainLink)
+    } else {
+      alert("No tienes suficientes puntos para este cupón!")
+    }
   }
 
   const renderCoupon = (coupon: (typeof coupons)[0]) => (

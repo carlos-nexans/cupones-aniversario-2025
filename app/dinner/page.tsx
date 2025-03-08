@@ -152,14 +152,14 @@ export default function RomanticDinnerGame() {
       .map((name) => allIngredients.find((ing) => ing.name === name))
       .filter(Boolean) as Ingredient[]
 
-    // Get other random ingredients
-    const otherIngredients = allIngredients
+    // Get other random ingredients, excluding the required ones
+    const remainingIngredients = allIngredients
       .filter((ing) => !requiredIngredientNames.includes(ing.name))
       .sort(() => 0.5 - Math.random())
       .slice(0, INGREDIENTS_TO_SHOW - requiredIngredients.length)
 
-    // Combine and shuffle
-    const shuffledIngredients = [...requiredIngredients, ...otherIngredients].sort(() => 0.5 - Math.random())
+    // Combine and shuffle all ingredients
+    const shuffledIngredients = [...requiredIngredients, ...remainingIngredients].sort(() => 0.5 - Math.random())
 
     setAvailableIngredients(shuffledIngredients)
     setSelectedIngredients([])

@@ -3,8 +3,12 @@
 import { useState, useEffect, useCallback } from "react"
 import { X, Minus, Square } from "lucide-react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 
-import confetti from "confetti"
+import Link from "next/link"
+import GameWinFooter from "@/components/game-win-footer"
+import ImageEffect from "@/components/image-effect"
+import GameLoseFooter from "@/components/game-loose-footer"
 
 interface Emoji {
   id: number
@@ -28,6 +32,20 @@ export default function KissGamePage() {
   const [spawnRate, setSpawnRate] = useState(initialSpawnRate)
   const [disappearTime, setDisappearTime] = useState(initialDisappearTime)
   const router = useRouter()
+  
+  const playGoodSound = () => {
+    if (typeof Audio !== 'undefined') {
+      const sound = new Audio('/sounds/click-good.wav')
+      sound.play()
+    }
+  }
+
+  const playBadSound = () => {
+    if (typeof Audio !== 'undefined') {
+      const sound = new Audio('/sounds/click-bad.mp3')
+      sound.play()
+    }
+  }
 
   const spawnEmoji = useCallback(() => {
     if (gameOver) return
@@ -59,21 +77,27 @@ export default function KissGamePage() {
 
       switch (emoji.type) {
         case "😘":
+          playGoodSound()
           setScore((prevScore) => prevScore + 100)
           break
         case "💋":
+          playGoodSound()
           setScore((prevScore) => prevScore + 200)
           break
         case "❤️":
+          playGoodSound()
           setScore((prevScore) => prevScore + 300)
           break
         case "🫢":
+          playBadSound()
           setScore((prevScore) => prevScore - 100)
           break
         case "👻":
+          playBadSound()
           setScore((prevScore) => prevScore - 200)
           break
         case "💝":
+          playGoodSound()
           setScore((prevScore) => prevScore + 1000)
           break
       }
@@ -142,25 +166,54 @@ export default function KissGamePage() {
             {gameOver && <div className="text-xl font-bold text-kawaii-pink-600">¡Juego terminado!</div>}
           </div>
           <div className="relative w-full h-[400px] bg-kawaii-pink-100 rounded-lg overflow-hidden">
-            {emojis.map((emoji) => (
-              <button
-                key={emoji.id}
-                className="absolute text-4xl transition-all duration-300 ease-in-out transform hover:scale-110"
-                style={{ left: `${emoji.x}%`, top: `${emoji.y}%` }}
-                onClick={() => handleClick(emoji)}
-                disabled={gameOver}
-              >
-                {emoji.type}
-              </button>
-            ))}
+            {gameOver && score > 0 && (
+              <div className="w-full h-full flex items-center justify-center">
+                <ImageEffect
+                  src="/images/kiss.webp"
+                  alt="Kiss"
+                  width={300}
+                  height={300}
+                  active={gameOver}
+                />
+              </div>
+            )}
+            {gameOver && score >= 0 && (
+              <div className="w-full h-full flex items-center justify-center">
+                <ImageEffect
+                  src="/images/sad.webp"
+                  alt="Sad"
+                  width={300}
+                  height={300}
+                  active={gameOver}
+                />
+              </div>
+            )}
+            {!gameOver && (
+              emojis.map((emoji) => (
+                <button
+                  key={emoji.id}
+                  className="absolute text-4xl transition-all duration-300 ease-in-out transform hover:scale-110"
+                  style={{ left: `${emoji.x}%`, top: `${emoji.y}%` }}
+                  onClick={() => handleClick(emoji)}
+                  disabled={gameOver}
+                >
+                  {emoji.type}
+                </button>
+              ))
+            )}
           </div>
-          {gameOver && (
-            <div className="mt-4 text-center">
-              <p className="text-xl mb-2">¡Felicidades! Tu puntuación final es: {score}</p>
-              <button className="pixel-button" onClick={handleGameEnd}>
-                Volver a los cupones
-              </button>
-            </div>
+          {gameOver && score > 0 && (
+            <GameWinFooter score={score} />
+          )}
+          {gameOver && score <= 0 && (
+            <GameLoseFooter score={score} onRestart={() => {
+              setGameOver(false)
+              setScore(0)
+              setTimeLeft(gameDuration)
+              setSpawnRate(initialSpawnRate)
+              setDisappearTime(initialDisappearTime)
+              setEmojis([])
+            }} />
           )}
         </div>
       </div>
