@@ -1,9 +1,10 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
-import { X, Minus, Square } from "lucide-react"
+import GameWinFooter from "@/components/game-win-footer"
+import { useCoupons } from "@/hooks/use-coupons"
+import { Minus, Square, X } from "lucide-react"
 import { useRouter } from "next/navigation"
-import confetti from "confetti"
+import { useCallback, useEffect, useState } from "react"
 
 interface Card {
   id: number
@@ -18,12 +19,24 @@ const initialScore = 100 * 2 * penaltyPerFlip
 const emojis = ["😏", "😈", "🫦", "👅", "😘", "💋", "❤️", "🔥"]
 
 export default function MemoryCardGame() {
+  const {markCouponAsWon} = useCoupons();
   const [cards, setCards] = useState<Card[]>([])
   const [flippedCards, setFlippedCards] = useState<number[]>([])
   const [score, setScore] = useState(initialScore)
   const [gameOver, setGameOver] = useState(false)
   const [gameStarted, setGameStarted] = useState(false)
   const router = useRouter()
+
+  // Audio references
+  const clickGoodSound = useCallback(() => {
+    const audio = new Audio('/sounds/click-good.wav');
+    audio.play();
+  }, []);
+
+  const playMatchSound = useCallback(() => {
+    const audio = new Audio(Math.random() > 0.5 ? '/sounds/delicious.mp3' : '/sounds/tasty.mp3');
+    audio.play();
+  }, []);
 
   // Initialize the game with all cards face down
   useEffect(() => {
@@ -56,6 +69,21 @@ export default function MemoryCardGame() {
       const clickedCard = cards[id]
       if (clickedCard.isFlipped || clickedCard.isMatched) return
 
+      // Check if this is the second card and if it matches
+      if (flippedCards.length === 1) {
+        const firstCard = cards[flippedCards[0]]
+        if (firstCard.emoji === clickedCard.emoji) {
+          // If it's a match, only play match sound
+          playMatchSound();
+        } else {
+          // If it's not a match, play click sound
+          clickGoodSound();
+        }
+      } else {
+        // First card always plays click sound
+        clickGoodSound();
+      }
+
       // Flip the card and add to flipped cards array
       setCards((prevCards) => 
         prevCards.map((card) => 
@@ -67,7 +95,7 @@ export default function MemoryCardGame() {
       setFlippedCards((prev) => [...prev, id])
       setScore((prevScore) => Math.max(0, prevScore - penaltyPerFlip))
     },
-    [flippedCards, gameOver, cards]
+    [flippedCards, gameOver, cards, clickGoodSound, playMatchSound]
   )
 
   // Check for matches when two cards are flipped
@@ -78,7 +106,7 @@ export default function MemoryCardGame() {
       const secondCard = cards[second]
 
       if (firstCard.emoji === secondCard.emoji) {
-        // If cards match, mark them as matched
+        // If cards match, mark them as matched (sound is already played)
         setCards((prevCards) =>
           prevCards.map((card) => 
             card.id === first || card.id === second 
@@ -112,14 +140,11 @@ export default function MemoryCardGame() {
     }
   }, [cards, gameStarted])
 
-  const handleGameEnd = useCallback(() => {
-    console.log("Final score:", score)
-    router.push("/")
-  }, [score, router])
-
-  const handleRestart = () => {
-    initializeGame()
-  }
+  useEffect(() => {
+    if (gameOver) {
+      markCouponAsWon(4);
+    }
+  }, [gameOver]);
 
   return (
     <div className="w-full max-w-2xl relative z-10 mx-auto mt-8">
@@ -158,17 +183,7 @@ export default function MemoryCardGame() {
             ))}
           </div>
           {gameOver && (
-            <div className="mt-4 text-center">
-              <p className="text-xl mb-2">¡Felicidades! Tu puntuación final es: {score}</p>
-              <div className="flex justify-center gap-4">
-                <button className="pixel-button" onClick={handleRestart}>
-                  Jugar de nuevo
-                </button>
-                <button className="pixel-button" onClick={handleGameEnd}>
-                  Volver a los cupones
-                </button>
-              </div>
-            </div>
+            <GameWinFooter score={score} />
           )}
         </div>
       </div>
