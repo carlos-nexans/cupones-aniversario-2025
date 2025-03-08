@@ -20,7 +20,7 @@ interface Emoji {
 
 const initialSpawnRate = 3500;
 const minimalSpawnRate = 1000;
-const gameDuration = 45;
+const gameDuration = 1;
 const initialDisappearTime = 4000;
 const minimalDisappearTime = 500;
 
@@ -28,6 +28,7 @@ export default function KissGamePage() {
   const [score, setScore] = useState(0)
   const [emojis, setEmojis] = useState<Emoji[]>([])
   const [gameOver, setGameOver] = useState(false)
+  const [gameStarted, setGameStarted] = useState(false)
   const [timeLeft, setTimeLeft] = useState(gameDuration)
   const [spawnRate, setSpawnRate] = useState(initialSpawnRate)
   const [disappearTime, setDisappearTime] = useState(initialDisappearTime)
@@ -106,18 +107,17 @@ export default function KissGamePage() {
   )
 
   useEffect(() => {
-    if (gameOver) return
+    if (!gameStarted || gameOver) return
     const spawnInterval = setInterval(spawnEmoji, spawnRate)
     return () => clearInterval(spawnInterval)
-  }, [spawnEmoji, spawnRate, gameOver])
+  }, [spawnEmoji, spawnRate, gameOver, gameStarted])
 
   useEffect(() => {
-    if (gameOver) return
+    if (!gameStarted || gameOver) return
     const timerInterval = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
           setGameOver(true)
-          // confetti
           return 0
         }
         return prev - 1
@@ -125,7 +125,7 @@ export default function KissGamePage() {
     }, 1000)
 
     return () => clearInterval(timerInterval)
-  }, [gameOver])
+  }, [gameOver, gameStarted])
 
   useEffect(() => {
     if (gameOver) return
@@ -141,6 +141,15 @@ export default function KissGamePage() {
     console.log("Final score:", score)
     router.push("/coupons")
   }, [score, router])
+
+  const startGame = () => {
+    setGameStarted(true)
+    setScore(0)
+    setTimeLeft(gameDuration)
+    setSpawnRate(initialSpawnRate)
+    setDisappearTime(initialDisappearTime)
+    setEmojis([])
+  }
 
   return (
     <div className="w-full max-w-2xl relative z-10 mx-auto mt-8">
@@ -160,60 +169,74 @@ export default function KissGamePage() {
           </div>
         </div>
         <div className="retro-window-content">
-          <div className="flex justify-between items-center mb-4">
-            <div className="text-2xl font-bold">Puntuación: {score}</div>
-            <div className="text-2xl font-bold">Tiempo: {timeLeft}s</div>
-            {gameOver && <div className="text-xl font-bold text-kawaii-pink-600">¡Juego terminado!</div>}
-          </div>
-          <div className="relative w-full h-[400px] bg-kawaii-pink-100 rounded-lg overflow-hidden">
-            {gameOver && score > 0 && (
-              <div className="w-full h-full flex items-center justify-center">
-                <ImageEffect
-                  src="/images/kiss.webp"
-                  alt="Kiss"
-                  width={300}
-                  height={300}
-                  active={gameOver}
-                />
+          {gameStarted ? (
+            <>
+              <div className="flex justify-between items-center mb-4">
+                <div className="text-2xl font-bold">Puntuación: {score}</div>
+                <div className="text-2xl font-bold">Tiempo: {timeLeft}s</div>
+                {gameOver && <div className="text-xl font-bold text-kawaii-pink-600">¡Juego terminado!</div>}
               </div>
-            )}
-            {gameOver && score >= 0 && (
-              <div className="w-full h-full flex items-center justify-center">
-                <ImageEffect
-                  src="/images/sad.webp"
-                  alt="Sad"
-                  width={300}
-                  height={300}
-                  active={gameOver}
-                />
+              <div className="relative w-full h-[400px] bg-kawaii-pink-100 rounded-lg overflow-hidden">
+                {gameOver && score > 0 && (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <ImageEffect
+                      src="/images/kiss.webp"
+                      alt="Kiss"
+                      width={300}
+                      height={300}
+                      active={gameOver}
+                    />
+                  </div>
+                )}
+                {gameOver && score >= 0 && (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <ImageEffect
+                      src="/images/sad.webp"
+                      alt="Sad"
+                      width={300}
+                      height={300}
+                      active={gameOver}
+                    />
+                  </div>
+                )}
+                {!gameOver && (
+                  emojis.map((emoji) => (
+                    <button
+                      key={emoji.id}
+                      className="absolute text-4xl transition-all duration-300 ease-in-out transform hover:scale-110"
+                      style={{ left: `${emoji.x}%`, top: `${emoji.y}%` }}
+                      onClick={() => handleClick(emoji)}
+                      disabled={gameOver}
+                    >
+                      {emoji.type}
+                    </button>
+                  ))
+                )}
               </div>
-            )}
-            {!gameOver && (
-              emojis.map((emoji) => (
-                <button
-                  key={emoji.id}
-                  className="absolute text-4xl transition-all duration-300 ease-in-out transform hover:scale-110"
-                  style={{ left: `${emoji.x}%`, top: `${emoji.y}%` }}
-                  onClick={() => handleClick(emoji)}
-                  disabled={gameOver}
-                >
-                  {emoji.type}
-                </button>
-              ))
-            )}
-          </div>
-          {gameOver && score > 0 && (
-            <GameWinFooter score={score} />
-          )}
-          {gameOver && score <= 0 && (
-            <GameLoseFooter score={score} onRestart={() => {
-              setGameOver(false)
-              setScore(0)
-              setTimeLeft(gameDuration)
-              setSpawnRate(initialSpawnRate)
-              setDisappearTime(initialDisappearTime)
-              setEmojis([])
-            }} />
+              {gameOver && score > 0 && (
+                <GameWinFooter score={score} />
+              )}
+              {gameOver && score <= 0 && (
+                <GameLoseFooter score={score} onRestart={() => {
+                  setGameOver(false)
+                  setScore(0)
+                  setTimeLeft(gameDuration)
+                  setSpawnRate(initialSpawnRate)
+                  setDisappearTime(initialDisappearTime)
+                  setEmojis([])
+                }} />
+              )}
+            </>
+          ) : (
+            <div className="relative w-full h-[400px] bg-kawaii-pink-100 rounded-lg overflow-hidden flex flex-col items-center justify-center">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4 special-text">Atrapa todos los besos que puedas</h2>
+              <button
+                onClick={startGame}
+                className="pixel-button"
+              >
+                Empezar
+              </button>
+            </div>
           )}
         </div>
       </div>

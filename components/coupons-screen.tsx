@@ -1,11 +1,12 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Image from "next/image"
-import { WhatsappIcon } from "@/components/icons"
-import { X, Minus, Square, Sparkle } from "lucide-react"
-import { useRouter } from "next/navigation"
-import { useCoupons } from "@/hooks/use-coupons"
+import { useState } from "react";
+import Image from "next/image";
+import { WhatsappIcon } from "@/components/icons";
+import { X, Minus, Square, Sparkle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useCoupons } from "@/hooks/use-coupons";
+import Link from "next/link";
 
 // Updated coupon data structure
 const coupons = [
@@ -17,7 +18,7 @@ const coupons = [
     expiryDate: "2024-03-31",
     status: "available", // active, expired, available, pending
     points: 100,
-    icon: "/placeholder.svg?height=64&width=64",
+    icon: "/images/kiss.webp",
     obtainLink: "/kiss-game",
   },
   {
@@ -28,7 +29,7 @@ const coupons = [
     expiryDate: "2024-04-30",
     status: "available", // Updated status
     points: 200,
-    icon: "/placeholder.svg?height=64&width=64",
+    icon: "/images/dinner.webp",
     obtainLink: "/dinner", // Updated obtainLink
   },
   {
@@ -39,7 +40,7 @@ const coupons = [
     expiryDate: "2024-05-31",
     status: "available",
     points: 150,
-    icon: "/placeholder.svg?height=64&width=64",
+    icon: "/images/massage.webp",
     obtainLink: "/massage",
   },
   {
@@ -50,7 +51,7 @@ const coupons = [
     expiryDate: "2024-06-30",
     status: "available",
     points: 300,
-    icon: "/placeholder.svg?height=64&width=64",
+    icon: "/images/secret.webp",
     obtainLink: "/memory-game",
   },
   {
@@ -61,7 +62,7 @@ const coupons = [
     expiryDate: "2024-07-31",
     status: "available",
     points: 250,
-    icon: "/placeholder.svg?height=64&width=64",
+    icon: "/images/picnic.webp",
     obtainLink: "/picnic",
   },
   {
@@ -72,7 +73,7 @@ const coupons = [
     expiryDate: "2024-08-31",
     status: "available",
     points: 250,
-    icon: "/placeholder.svg?height=64&width=64",
+    icon: "/images/nature.webp",
     obtainLink: "/nature",
   },
   {
@@ -81,74 +82,95 @@ const coupons = [
     description: "Canjeable por una tarde de juegos juntos",
     unlockDate: "2024-09-01",
     expiryDate: "2024-09-30",
-    status: "pending",
+    status: "available",
     points: 200,
-    icon: "/placeholder.svg?height=64&width=64",
-    obtainLink: "https://example.com/obtain/7",
+    icon: "/images/boardgames.webp",
+    obtainLink: "/boardgames",
   },
   {
     id: 8,
-    name: "Juegos de mesa",
-    description: "Canjeable por una tarde de juegos de mesa",
+    name: "Una sorpresa",
+    description: "Canjeable por una sorpresa",
     unlockDate: "2024-10-01",
     expiryDate: "2024-10-31",
-    status: "available",
+    status: "pending",
     points: 200,
-    icon: "/placeholder.svg?height=64&width=64",
-    obtainLink: "/boardgames",
+    icon: "/images/mistery.webp",
+    obtainLink: "/mistery",
   },
-]
+];
 
 export default function CouponsScreen() {
-  const { totalPoints, wonCoupons, markCouponAsWon } = useCoupons()
-  const router = useRouter()
+  const { totalPoints, wonCoupons, markCouponAsWon } = useCoupons();
+  const router = useRouter();
 
-  const activeCoupons = coupons.filter((coupon) => wonCoupons.includes(coupon.id))
+  const activeCoupons = coupons.filter((coupon) =>
+    wonCoupons.includes(coupon.id)
+  );
   const availableCoupons = coupons.filter(
-    (coupon) => 
-      coupon.status === "available" && 
-      !wonCoupons.includes(coupon.id)
-  )
+    (coupon) => coupon.status === "available" && !wonCoupons.includes(coupon.id)
+  );
   const expiredCoupons = coupons
     .filter((coupon) => coupon.status === "expired")
-    .sort((a, b) => new Date(b.expiryDate).getTime() - new Date(a.expiryDate).getTime())
+    .sort(
+      (a, b) =>
+        new Date(b.expiryDate).getTime() - new Date(a.expiryDate).getTime()
+    );
   const pendingCoupons = coupons
     .filter((coupon) => coupon.status === "pending")
-    .sort((a, b) => new Date(a.unlockDate).getTime() - new Date(b.unlockDate).getTime())
+    .sort(
+      (a, b) =>
+        new Date(a.unlockDate).getTime() - new Date(b.unlockDate).getTime()
+    );
 
   const handleClaimCoupon = (id: number) => {
-    const message = `Quiero canjear mi cupón: ${coupons.find((c) => c.id === id)?.name}`
-    window.open(`https://wa.me/TUNUMERO?text=${encodeURIComponent(message)}`, "_blank")
-  }
-
-  const handleObtainCoupon = (coupon: (typeof coupons)[0]) => {
-    if (totalPoints >= coupon.points) {
-      markCouponAsWon(coupon.id)
-      router.push(coupon.obtainLink)
-    } else {
-      alert("No tienes suficientes puntos para este cupón!")
-    }
-  }
+    const message = `Quiero canjear mi cupón: ${
+      coupons.find((c) => c.id === id)?.name
+    }`;
+    window.open(
+      `https://wa.me/TUNUMERO?text=${encodeURIComponent(message)}`,
+      "_blank"
+    );
+  };
 
   const renderCoupon = (coupon: (typeof coupons)[0]) => (
     <div key={coupon.id} className="pixel-card mb-4">
       <div className="flex flex-col sm:flex-row sm:items-stretch gap-4">
         <div className="w-24 h-24 sm:h-auto relative">
-          <Image
-            src={coupon.icon || "/placeholder.svg"}
-            alt={coupon.name}
-            layout="fill"
-            objectFit="contain"
-            className="sm:absolute inset-0"
-          />
+          {coupon.status != "pending" && (
+            <Image
+              src={coupon.icon || "/placeholder.svg"}
+              alt={coupon.name}
+              layout="fill"
+              objectFit="contain"
+              className="sm:absolute inset-0"
+            />
+          )}
+          {coupon.status === "pending" && (
+            <Image
+              src="/images/unknown.webp"
+              alt={coupon.name}
+              layout="fill"
+              objectFit="contain"
+              className="sm:absolute inset-0"
+            />
+          )}
         </div>
         <div className="flex-1">
-          <h3 className="text-black mb-1">{coupon.status === "pending" ? "???" : coupon.name}</h3>
-          <p className="mb-2 text-black/70">{coupon.status === "pending" ? "Cupón misterioso" : coupon.description}</p>
+          <h3 className="text-black mb-1">
+            {coupon.status === "pending" ? "???" : coupon.name}
+          </h3>
+          <p className="mb-2 text-black/70">
+            {coupon.status === "pending"
+              ? "Cupón misterioso"
+              : coupon.description}
+          </p>
           <div className="flex justify-between items-center">
             <span className="text-kawaii-blue-900">
               {coupon.status === "pending"
-                ? `Disponible: ${new Date(coupon.unlockDate).toLocaleDateString()}`
+                ? `Disponible: ${new Date(
+                    coupon.unlockDate
+                  ).toLocaleDateString()}`
                 : `Expira: ${new Date(coupon.expiryDate).toLocaleDateString()}`}
             </span>
 
@@ -163,19 +185,18 @@ export default function CouponsScreen() {
             )}
 
             {coupon.status === "available" && (
-              <button
-                onClick={() => handleObtainCoupon(coupon)}
-                className="flex items-center gap-1 bg-kawaii-blue border-2 border-black text-black px-2 py-1 rounded-md"
-              >
-                <Sparkle className="w-4 h-4" />
-                <span>Obtener</span>
-              </button>
+              <Link href={coupon.obtainLink}>
+                <button className="flex items-center gap-1 bg-kawaii-blue border-2 border-black text-black px-2 py-1 rounded-md">
+                  <Sparkle className="w-4 h-4" />
+                  <span>Obtener</span>
+                </button>
+              </Link>
             )}
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 
   return (
     <div className="w-full max-w-2xl relative z-10">
@@ -221,6 +242,5 @@ export default function CouponsScreen() {
         </div>
       </div>
     </div>
-  )
+  );
 }
-
