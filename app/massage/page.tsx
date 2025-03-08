@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
-import { X, Minus, Square } from "lucide-react";
-import { useRouter } from "next/navigation";
+import GameWinFooter from "@/components/game-win-footer";
+import { useCoupons } from "@/hooks/use-coupons";
+import { Minus, Square, X } from "lucide-react";
 import Image from "next/image";
-import confetti from "confetti";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export default function RaspaGame() {
   const router = useRouter();
@@ -14,6 +14,7 @@ export default function RaspaGame() {
   const [canvasSize, setCanvasSize] = useState({ width: 400, height: 400 });
   const [revealed, setRevealed] = useState(false);
   const prevPointRef = useRef<{ x: number; y: number } | null>(null);
+  const {markCouponAsWon} = useCoupons();
 
   const checkScratchCompletion = useCallback(() => {
     const canvas = canvasRef.current;
@@ -48,6 +49,12 @@ export default function RaspaGame() {
       ctx.clearRect(0, 0, canvasSize.width, canvasSize.height);
     }
   }, [canvasSize, revealed]);
+
+  useEffect(() => {
+    if (revealed) {
+      markCouponAsWon(3);
+    }
+  }, [revealed]);
 
   const drawScratch = useCallback(
     (ctx: CanvasRenderingContext2D, x: number, y: number) => {
@@ -219,14 +226,7 @@ export default function RaspaGame() {
             )}
           </div>
 
-          {revealed && (
-            <div className="mt-4 text-center">
-              <p className="text-xl mb-2 font-bold">¡Felicidades! Has ganado.</p>
-              <Link href="/">
-                <button className="pixel-button">Volver a los cupones</button>
-              </Link>
-            </div>
-          )}
+          {revealed && <GameWinFooter />}
         </div>
       </div>
     </div>

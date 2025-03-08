@@ -1,36 +1,51 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useCallback, useRef } from "react"
-import { X, Minus, Square } from "lucide-react"
-import { useRouter } from "next/navigation"
-import confetti from "confetti"
-import { useCoupons } from "@/hooks/use-coupons"
-import GameWinFooter from "@/components/game-win-footer"
-import GameLoseFooter from "@/components/game-loose-footer"
+import { useState, useEffect, useCallback, useRef } from "react";
+import { X, Minus, Square } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useCoupons } from "@/hooks/use-coupons";
+import GameWinFooter from "@/components/game-win-footer";
+import GameLoseFooter from "@/components/game-loose-footer";
 
 interface Ingredient {
-  id: number
-  name: string
-  emoji: string
+  id: number;
+  name: string;
+  emoji: string;
 }
 
 interface Dish {
-  id: number
-  name: string
-  emoji: string
-  requiredIngredients: string[]
+  id: number;
+  name: string;
+  emoji: string;
+  requiredIngredients: string[];
 }
 
 // Audio setup
-const tastySound = new Audio("/sounds/tasty.mp3")
-const deliciousSound = new Audio("/sounds/delicious.mp3")
-const looseSound = new Audio("/sounds/loose.mp3")
+const tastySound = new Audio("/sounds/tasty.mp3");
+const deliciousSound = new Audio("/sounds/delicious.mp3");
+const looseSound = new Audio("/sounds/loose.mp3");
+
+let isPlayingSound = false;
 
 const playRandomSuccessSound = () => {
-  const sounds = [tastySound, deliciousSound]
-  const randomSound = sounds[Math.floor(Math.random() * sounds.length)]
-  randomSound.play()
-}
+  if (isPlayingSound) return;
+  
+  isPlayingSound = true;
+  const sounds = [tastySound, deliciousSound];
+  const randomSound = sounds[Math.floor(Math.random() * sounds.length)];
+  
+  randomSound.play();
+  
+  // Reset the flag when the sound finishes playing
+  randomSound.onended = () => {
+    isPlayingSound = false;
+  };
+  
+  // Failsafe: reset the flag after 1 second in case onended doesn't fire
+  setTimeout(() => {
+    isPlayingSound = false;
+  }, 1000);
+};
 
 // All possible dishes
 const allDishes: Dish[] = [
@@ -94,7 +109,7 @@ const allDishes: Dish[] = [
     emoji: "🦞",
     requiredIngredients: ["Caldo", "Mariscos", "Verduras"],
   },
-]
+];
 
 // All possible ingredients
 const allIngredients: Ingredient[] = [
@@ -117,151 +132,159 @@ const allIngredients: Ingredient[] = [
   { id: 17, name: "Especias", emoji: "🌶️" },
   { id: 18, name: "Verduras", emoji: "🥦" },
   { id: 19, name: "Pan", emoji: "🍞" },
-]
+];
 
-const DISH_COUNT = 5
-const GAME_TIME = 5
-const INGREDIENTS_TO_SHOW = 6
-const INGREDIENTS_TO_SELECT = 3
+const DISH_COUNT = 5;
+const GAME_TIME = 6;
+const INGREDIENTS_TO_SHOW = 6;
+const INGREDIENTS_TO_SELECT = 3;
 
 export default function RomanticDinnerGame() {
-  const [dishes, setDishes] = useState<Dish[]>([])
-  const [currentDishIndex, setCurrentDishIndex] = useState(0)
-  const [availableIngredients, setAvailableIngredients] = useState<Ingredient[]>([])
-  const [selectedIngredients, setSelectedIngredients] = useState<Ingredient[]>([])
-  const [gameOver, setGameOver] = useState(false)
-  const [gameWon, setGameWon] = useState(false)
-  const [timeLeft, setTimeLeft] = useState(GAME_TIME)
-  const [gameStarted, setGameStarted] = useState(false)
-  const timerRef = useRef<NodeJS.Timeout | null>(null)
-  const router = useRouter()
+  const [dishes, setDishes] = useState<Dish[]>([]);
+  const [currentDishIndex, setCurrentDishIndex] = useState(0);
+  const [availableIngredients, setAvailableIngredients] = useState<
+    Ingredient[]
+  >([]);
+  const [selectedIngredients, setSelectedIngredients] = useState<Ingredient[]>(
+    []
+  );
+  const [gameOver, setGameOver] = useState(false);
+  const [gameWon, setGameWon] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(GAME_TIME);
+  const [gameStarted, setGameStarted] = useState(false);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const router = useRouter();
 
   // Shuffle and select random dishes
   const initializeGame = useCallback(() => {
     // Shuffle dishes array
-    const shuffledDishes = [...allDishes].sort(() => 0.5 - Math.random())
+    const shuffledDishes = [...allDishes].sort(() => 0.5 - Math.random());
 
     // Select 5 random dishes
-    const selectedDishes = shuffledDishes.slice(0, DISH_COUNT)
+    const selectedDishes = shuffledDishes.slice(0, DISH_COUNT);
 
-    setDishes(selectedDishes)
-    setCurrentDishIndex(0)
-    setGameOver(false)
-    setGameWon(false)
-    setTimeLeft(GAME_TIME)
-    setSelectedIngredients([])
-    setGameStarted(true)
-
-    // Set up ingredients for the first dish
-    setUpIngredientsForDish(selectedDishes[0])
-  }, [])
+    setDishes(selectedDishes);
+    setCurrentDishIndex(0);
+    setGameOver(false);
+    setGameWon(false);
+    setTimeLeft(GAME_TIME);
+    setSelectedIngredients([]);
+    setGameStarted(true);
+  }, []);
 
   // Set up ingredients for a dish
   const setUpIngredientsForDish = useCallback((dish: Dish) => {
-    // Get required ingredients for the dish
-    const requiredIngredientNames = dish.requiredIngredients
+    console.log("Computing ingredients for dish", dish.name);
+    // Create two separate arrays: one for required ingredients and one for other random ingredients
+    const requiredIngredients = allIngredients.filter((ingredient) =>
+      dish.requiredIngredients.includes(ingredient.name)
+    );
+    const otherIngredientsPool = allIngredients
+      .filter(
+        (ingredient) => !dish.requiredIngredients.includes(ingredient.name)
+      )
+      .slice(0, INGREDIENTS_TO_SHOW - requiredIngredients.length);
+    const ingredientsToShow = [...requiredIngredients, ...otherIngredientsPool];
+    ingredientsToShow.sort(() => 0.5 - Math.random());
 
-    // Find the actual ingredient objects for required ingredients
-    const requiredIngredients = requiredIngredientNames
-      .map((name) => allIngredients.find((ing) => ing.name === name))
-      .filter(Boolean) as Ingredient[]
-
-    // Get other random ingredients, excluding the required ones
-    const otherIngredients = allIngredients
-      .filter((ing) => !requiredIngredientNames.includes(ing.name))
-      .sort(() => 0.5 - Math.random())
-      .slice(0, INGREDIENTS_TO_SHOW - requiredIngredients.length)
-
-    // Combine and shuffle all ingredients, ensuring all required ingredients are included
-    const allAvailableIngredients = [...requiredIngredients, ...otherIngredients].sort(() => 0.5 - Math.random())
-
-    setAvailableIngredients(allAvailableIngredients)
-    setSelectedIngredients([])
-    setTimeLeft(GAME_TIME)
+    // Set state and reset timer
+    setAvailableIngredients(ingredientsToShow);
+    setSelectedIngredients([]);
+    setTimeLeft(GAME_TIME);
 
     // Reset the timer
     if (timerRef.current) {
-      clearInterval(timerRef.current)
+      clearInterval(timerRef.current);
     }
 
     timerRef.current = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
           // Time's up for this dish
-          clearInterval(timerRef.current as NodeJS.Timeout)
-          setGameOver(true)
-          return 0
+          clearInterval(timerRef.current as NodeJS.Timeout);
+          setGameOver(true);
+          return 0;
         }
-        return prev - 1
-      })
-    }, 1000)
-  }, [])
+        return prev - 1;
+      });
+    }, 1000);
+  }, []);
+
+  useEffect(() => {
+    if (!gameStarted) return;
+    setUpIngredientsForDish(dishes[currentDishIndex]);
+  }, [currentDishIndex, setUpIngredientsForDish, gameStarted]);
 
   // Handle ingredient selection
   const handleIngredientClick = useCallback(
     (ingredient: Ingredient) => {
-      if (gameOver || selectedIngredients.length >= INGREDIENTS_TO_SELECT) return
+      if (gameOver || selectedIngredients.length >= INGREDIENTS_TO_SELECT)
+        return;
 
       // Add the ingredient to selected ingredients
       setSelectedIngredients((prev) => {
         // Don't add if already selected
-        if (prev.some((ing) => ing.id === ingredient.id)) return prev
+        if (prev.some((ing) => ing.id === ingredient.id)) return prev;
 
-        const newSelected = [...prev, ingredient]
+        const newSelected = [...prev, ingredient];
 
         // If we've selected 3 ingredients, check if correct
         if (newSelected.length === INGREDIENTS_TO_SELECT) {
-          clearInterval(timerRef.current as NodeJS.Timeout)
+          clearInterval(timerRef.current as NodeJS.Timeout);
 
           // Check if all required ingredients are selected
-          const currentDish = dishes[currentDishIndex]
-          const selectedNames = newSelected.map((ing) => ing.name)
-          const requiredNames = currentDish.requiredIngredients
+          const currentDish = dishes[currentDishIndex];
+          const selectedNames = newSelected.map((ing) => ing.name);
+          const requiredNames = currentDish.requiredIngredients;
 
-          const correct = requiredNames.every((name) => selectedNames.includes(name))
+          const correct = requiredNames.every((name) =>
+            selectedNames.includes(name)
+          );
 
           if (!correct) {
-            setGameOver(true)
-            looseSound.play()
+            setGameOver(true);
+            looseSound.play();
           } else {
             // Move to next dish
-            playRandomSuccessSound()
             if (currentDishIndex < dishes.length - 1) {
-              setTimeout(() => {
-                setCurrentDishIndex((prev) => prev + 1)
-                setUpIngredientsForDish(dishes[currentDishIndex + 1])
-              }, 1000)
+              playRandomSuccessSound();
+              setCurrentDishIndex((prev) => prev + 1);
             } else {
               // Game won!
-              setGameWon(true)
+              setGameWon(true);
               // confetti
             }
           }
         }
 
-        return newSelected
-      })
+        return newSelected;
+      });
     },
-    [gameOver, selectedIngredients, dishes, currentDishIndex, setUpIngredientsForDish],
-  )
+    [
+      gameOver,
+      selectedIngredients,
+      dishes,
+      currentDishIndex,
+      setUpIngredientsForDish,
+    ]
+  );
 
   // Start the game
   useEffect(() => {
-    initializeGame()
+    initializeGame();
 
     return () => {
       if (timerRef.current) {
-        clearInterval(timerRef.current)
+        clearInterval(timerRef.current);
       }
-    }
-  }, [initializeGame])
+    };
+  }, [initializeGame]);
 
-  const { markCouponAsWon } = useCoupons()
+  const { markCouponAsWon } = useCoupons();
 
-  const handleGameEnd = useCallback(() => {
-    markCouponAsWon(2)
-    router.push("/")
-  }, [router])
+  useEffect(() => {
+      markCouponAsWon(2);
+  }, [gameWon]);
 
   return (
     <div className="w-full max-w-2xl relative z-10 mx-auto mt-8">
@@ -291,19 +314,25 @@ export default function RomanticDinnerGame() {
           {gameStarted && dishes.length > 0 && (
             <div className="flex flex-col items-center">
               {/* Current dish */}
-              <div className="text-6xl mb-4">{dishes[currentDishIndex].emoji}</div>
-              <div className="text-2xl font-bold mb-6">{dishes[currentDishIndex].name}</div>
+              <div className="text-6xl mb-4">
+                {dishes[currentDishIndex].emoji}
+              </div>
+              <div className="text-2xl font-bold mb-6">
+                {dishes[currentDishIndex].name}
+              </div>
 
               {/* Selected ingredients */}
               <div className="flex justify-center gap-4 mb-6">
-                {Array.from({ length: INGREDIENTS_TO_SELECT }).map((_, index) => (
-                  <div
-                    key={`slot-${index}`}
-                    className="w-16 h-16 border-2 border-dashed border-gray-400 rounded-lg flex items-center justify-center text-3xl"
-                  >
-                    {selectedIngredients[index]?.emoji || ""}
-                  </div>
-                ))}
+                {Array.from({ length: INGREDIENTS_TO_SELECT }).map(
+                  (_, index) => (
+                    <div
+                      key={`slot-${index}`}
+                      className="w-16 h-16 border-2 border-dashed border-gray-400 rounded-lg flex items-center justify-center text-3xl"
+                    >
+                      {selectedIngredients[index]?.emoji || ""}
+                    </div>
+                  )
+                )}
               </div>
 
               {/* Available ingredients */}
@@ -312,7 +341,9 @@ export default function RomanticDinnerGame() {
                   <button
                     key={ingredient.id}
                     className={`p-2 border-2 ${
-                      selectedIngredients.some((ing) => ing.id === ingredient.id)
+                      selectedIngredients.some(
+                        (ing) => ing.id === ingredient.id
+                      )
                         ? "border-pink-500 bg-pink-100"
                         : "border-gray-300 hover:border-pink-300 hover:bg-pink-50"
                     } rounded-lg flex flex-col items-center justify-center transition-colors`}
@@ -320,11 +351,15 @@ export default function RomanticDinnerGame() {
                     disabled={
                       gameOver ||
                       selectedIngredients.length >= INGREDIENTS_TO_SELECT ||
-                      selectedIngredients.some((ing) => ing.id === ingredient.id)
+                      selectedIngredients.some(
+                        (ing) => ing.id === ingredient.id
+                      )
                     }
                   >
                     <span className="text-2xl mb-1">{ingredient.emoji}</span>
-                    <span className="text-sm font-medium">{ingredient.name}</span>
+                    <span className="text-sm font-medium">
+                      {ingredient.name}
+                    </span>
                   </button>
                 ))}
               </div>
@@ -333,7 +368,8 @@ export default function RomanticDinnerGame() {
               {gameOver && !gameWon && (
                 <GameLoseFooter onRestart={initializeGame}>
                   <p className="mb-4">
-                    Los ingredientes correctos eran: {dishes[currentDishIndex].requiredIngredients.join(", ")}
+                    Los ingredientes correctos eran:{" "}
+                    {dishes[currentDishIndex].requiredIngredients.join(", ")}
                   </p>
                 </GameLoseFooter>
               )}
@@ -347,6 +383,5 @@ export default function RomanticDinnerGame() {
         </div>
       </div>
     </div>
-  )
+  );
 }
-

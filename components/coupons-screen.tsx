@@ -110,7 +110,9 @@ const coupons: Coupon[] = [
 ];
 
 const computeCouponStatus = (unlockDate: string, expiryDate: string): CouponStatus => {
-  const today = new Date();
+  const today = process.env.NEXT_PUBLIC_DEBUG_DATE 
+    ? new Date(process.env.NEXT_PUBLIC_DEBUG_DATE)
+    : new Date();
   const unlock = new Date(unlockDate);
   const expiry = new Date(expiryDate);
 
@@ -205,10 +207,11 @@ export default function CouponsScreen() {
           <div className="flex justify-between items-center">
             <span className="text-kawaii-blue-900">
               {coupon.status === "pending"
-                ? `Disponible: ${new Date(
+                && `Disponible: ${new Date(
                     coupon.unlockDate
-                  ).toLocaleDateString()}`
-                : `Expira: ${new Date(coupon.expiryDate).toLocaleDateString()}`}
+                  ).toLocaleDateString()}`}
+                {coupon.status === "available" && `Expira: ${new Date(coupon.expiryDate).toLocaleDateString()}`}
+                {coupon.status === "expired" && !coupon.won && `Expirado ${new Date(coupon.expiryDate).toLocaleDateString()}`}
             </span>
 
             {coupon.won && coupon.status === "available" && (
