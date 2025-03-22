@@ -196,7 +196,7 @@ export default function MemoryCardGame() {
                 ))}
               </div>
               {gameOver && (
-                <GameWinFooter score={score} />
+                <GameWinFooter score={score} label="una noche sensual" />
               )}
             </>
           )}

@@ -222,7 +222,7 @@ export default function KissGamePage() {
                 )}
               </div>
               {gameOver && score > 0 && (
-                <GameWinFooter score={score} />
+                <GameWinFooter score={score} label="vale un beso, sin peros" />
               )}
               {gameOver && score <= 0 && (
                 <GameLoseFooter onRestart={() => {

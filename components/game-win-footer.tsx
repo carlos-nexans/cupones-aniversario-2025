@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect } from "react";
 import JSConfetti from "js-confetti";
 import { useCoupons } from "@/hooks/use-coupons";
-export default function GameWinFooter({ score }: { score?: number }) {
+export default function GameWinFooter({ score, label }: { score?: number, label: string }) {
   const { addPoints } = useCoupons();
   useEffect(() => {
     const playVictorySound = async () => {
@@ -31,7 +31,7 @@ export default function GameWinFooter({ score }: { score?: number }) {
 
   return (
     <div className="mt-4 text-center">
-      <p className="text-xl mb-2 font-bold">¡Felicidades! Has ganado.</p>
+      {label && <p className="text-xl mb-2 font-bold">¡Felicidades! Has ganado {label}</p>}
       {score && score > 0 ? (
         <p className="text-xl mb-2">Tu puntuación final es: {score}</p>
       ) : null}

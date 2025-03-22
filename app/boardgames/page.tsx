@@ -237,7 +237,7 @@ export default function BoardGamesPage() {
                   ))}
                 </div>
                 {gameState.gameOver && gameState.gameWon && (
-                  <GameWinFooter score={gameState.score} />
+                  <GameWinFooter score={gameState.score} label="una tarde de juegos" />
                 )}
                 {gameState.gameOver && !gameState.gameWon && (
                   <>

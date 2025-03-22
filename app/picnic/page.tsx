@@ -208,7 +208,7 @@ export default function PicnicGamePage() {
                 <p className="text-lg mb-2">¡Protege tu picnic! Haz clic en las hormigas para eliminarlas.</p>
               </div>
               {gameOver && score > 0 && (
-                <GameWinFooter score={score} />
+                <GameWinFooter score={score} label="un picnic en el parque" />
               )}
               {gameOver && score <= 0 && (
                 <GameLoseFooter onRestart={() => {

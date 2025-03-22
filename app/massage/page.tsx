@@ -226,7 +226,7 @@ export default function RaspaGame() {
             )}
           </div>
 
-          {revealed && <GameWinFooter score={500} />}
+          {revealed && <GameWinFooter score={500} label="un masaje" />}
         </div>
       </div>
     </div>

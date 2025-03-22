@@ -376,7 +376,7 @@ export default function RomanticDinnerGame() {
 
               {gameWon && (
                 /* Cantidad de platos correctos */
-                <GameWinFooter score={currentDishIndex * 200} />
+                <GameWinFooter score={currentDishIndex * 200} label="una cena romántica" />
               )}
             </div>
           )}

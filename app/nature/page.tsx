@@ -227,7 +227,7 @@ export default function NatureGamePage() {
                     </button>
                   ))}
               </div>
-              {gameOver && score > 0 && <GameWinFooter score={score} />}
+              {gameOver && score > 0 && <GameWinFooter score={score} label="una dia en la naturaleza" />}
               {gameOver && score <= 0 && (
                 <GameLoseFooter
                   onRestart={() => {
