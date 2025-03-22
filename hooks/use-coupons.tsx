@@ -63,29 +63,12 @@ export const useCoupons = () => {
     }))
   }, [state])
 
-  // Add points to the total
-  const addPoints = (points: number) => {
-    if (points <= 0) return;
-    
-    setState((prev) => {
-      const newState = {
-        ...prev,
-        totalPoints: prev.totalPoints + points,
-      };
-      // Immediately save to localStorage to prevent race conditions
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        ...newState,
-        wonCoupons: Array.from(newState.wonCoupons),
-      }));
-      return newState;
-    });
-  }
-
   // Mark a coupon as won/active
-  const markCouponAsWon = (couponId: number) => {
+  const markCouponAsWon = (couponId: number, points: number) => {
     setState((prev) => ({
       ...prev,
       wonCoupons: new Set([...prev.wonCoupons, couponId]),
+      totalPoints: prev.totalPoints + points,
     }))
   }
 
@@ -97,7 +80,6 @@ export const useCoupons = () => {
   return {
     totalPoints: state.totalPoints,
     wonCoupons: state.wonCoupons,
-    addPoints,
     markCouponAsWon,
     isCouponWon,
   }

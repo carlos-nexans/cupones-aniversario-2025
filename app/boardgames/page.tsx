@@ -181,9 +181,9 @@ export default function BoardGamesPage() {
 
   useEffect(() => {
     if (gameState.gameOver && gameState.gameWon) {
-      markCouponAsWon(7)
+      markCouponAsWon(7, gameState.score)
     }
-  }, [gameState.gameOver, gameState.gameWon, markCouponAsWon])
+  }, [gameState.gameOver, gameState.gameWon])
 
   const alphabet = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ".split("");
 

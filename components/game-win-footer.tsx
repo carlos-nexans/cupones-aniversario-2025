@@ -1,17 +1,12 @@
 "use client";
 
+import JSConfetti from "js-confetti";
 import Link from "next/link";
 import { useEffect } from "react";
-import JSConfetti from "js-confetti";
-import { useCoupons } from "@/hooks/use-coupons";
 export default function GameWinFooter({ score, label }: { score?: number, label: string }) {
-  const { addPoints } = useCoupons();
   useEffect(() => {
     const playVictorySound = async () => {
       try {
-        if (score) {
-          addPoints(score);
-        }
         const audio = new Audio("/sounds/tadaa.mp3");
         audio.volume = 0.5; // Set volume to 50%
         await audio.play().catch((error) => {

@@ -283,7 +283,9 @@ export default function RomanticDinnerGame() {
   const { markCouponAsWon } = useCoupons();
 
   useEffect(() => {
-      markCouponAsWon(2);
+    if (gameWon) {
+      markCouponAsWon(2, currentDishIndex * 200);
+    }
   }, [gameWon]);
 
   return (

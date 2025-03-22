@@ -143,7 +143,7 @@ export default function MemoryCardGame() {
 
   useEffect(() => {
     if (gameOver) {
-      markCouponAsWon(4);
+      markCouponAsWon(4, score);
     }
   }, [gameOver]);
 

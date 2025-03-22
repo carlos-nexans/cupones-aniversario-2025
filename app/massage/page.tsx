@@ -52,7 +52,7 @@ export default function RaspaGame() {
 
   useEffect(() => {
     if (revealed) {
-      markCouponAsWon(3);
+      markCouponAsWon(3, 500);
     }
   }, [revealed]);
 

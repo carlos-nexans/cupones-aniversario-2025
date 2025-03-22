@@ -152,7 +152,7 @@ export default function TriviaPage() {
       } else {
         setShowResults(true);
         if (selectedAnswer === currentQuestion.correctAnswer && score + 1 === questions.length) {
-          markCouponAsWon(8)
+          markCouponAsWon(8, score * 100)
         }
       }
     }
@@ -245,7 +245,7 @@ export default function TriviaPage() {
           <div className="retro-window-content">
             <div className="relative w-full h-[400px] bg-kawaii-pink-100 rounded-lg overflow-hidden flex flex-col items-center justify-center">
               {isWinner && (
-                <GameWinFooter score={1000} label="una cena romántica" />
+                <GameWinFooter score={1000} label="una sorpresa misteriosa" />
               )}
               {!isWinner && (
                 <GameLoseFooter onRestart={handleRestart} />

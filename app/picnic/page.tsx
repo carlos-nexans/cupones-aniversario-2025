@@ -143,9 +143,9 @@ export default function PicnicGamePage() {
 
   useEffect(() => {
     if (gameOver && score > 0) {
-      markCouponAsWon(5)
+      markCouponAsWon(5, score)
     }
-  }, [gameOver, score, markCouponAsWon])
+  }, [gameOver, score])
 
   const handleGameEnd = useCallback(() => {
     console.log("Final score:", score)
