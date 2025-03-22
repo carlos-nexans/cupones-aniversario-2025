@@ -6,6 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { useCoupons } from "@/hooks/use-coupons";
 import { Minus, Square, X } from "lucide-react";
 import { useEffect, useState } from 'react';
+export const dynamic = 'force-dynamic'
 
 interface Question {
   id: number;

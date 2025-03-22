@@ -8,6 +8,8 @@ import { Minus, Square, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
+export const dynamic = 'force-dynamic'
+
 const scorePerEmoji = {
   // all flowers emojis
   "🌸": 100,
@@ -54,7 +56,9 @@ export default function NatureGamePage() {
   const { markCouponAsWon } = useCoupons();
 
   useEffect(() => {
-    markCouponAsWon(6);
+    if (gameOver && score > 0) {
+      markCouponAsWon(6, score);
+    }
   }, [score, gameOver]);
 
   const playGoodSound = () => {

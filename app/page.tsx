@@ -5,6 +5,8 @@ import WelcomeScreen from "@/components/welcome-screen"
 import CouponsScreen from "@/components/coupons-screen"
 import { FloatingHearts } from "@/components/floating-hearts"
 
+export const dynamic = 'force-dynamic'
+
 export default function Home() {
   const [authenticated, setAuthenticated] = useState(() => {
     const authCookie = localStorage.getItem("auth")

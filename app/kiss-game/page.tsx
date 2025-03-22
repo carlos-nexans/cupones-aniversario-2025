@@ -11,6 +11,8 @@ import ImageEffect from "@/components/image-effect"
 import GameLoseFooter from "@/components/game-loose-footer"
 import { useCoupons } from "@/hooks/use-coupons"
 
+export const dynamic = 'force-dynamic'
+
 interface Emoji {
   id: number
   type: "😘" | "💋" | "❤️" | "🫢" | "👻" | "💝"

@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
-import { X, Minus, Square } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useCoupons } from "@/hooks/use-coupons";
-import GameWinFooter from "@/components/game-win-footer";
 import GameLoseFooter from "@/components/game-loose-footer";
+import GameWinFooter from "@/components/game-win-footer";
+import { useCoupons } from "@/hooks/use-coupons";
+import { Minus, Square, X } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+
+export const dynamic = "force-dynamic";
 
 interface Ingredient {
   id: number;
@@ -20,32 +21,7 @@ interface Dish {
   requiredIngredients: string[];
 }
 
-// Audio setup
-const tastySound = new Audio("/sounds/tasty.mp3");
-const deliciousSound = new Audio("/sounds/delicious.mp3");
-const looseSound = new Audio("/sounds/loose.mp3");
-
 let isPlayingSound = false;
-
-const playRandomSuccessSound = () => {
-  if (isPlayingSound) return;
-  
-  isPlayingSound = true;
-  const sounds = [tastySound, deliciousSound];
-  const randomSound = sounds[Math.floor(Math.random() * sounds.length)];
-  
-  randomSound.play();
-  
-  // Reset the flag when the sound finishes playing
-  randomSound.onended = () => {
-    isPlayingSound = false;
-  };
-  
-  // Failsafe: reset the flag after 1 second in case onended doesn't fire
-  setTimeout(() => {
-    isPlayingSound = false;
-  }, 1000);
-};
 
 // All possible dishes
 const allDishes: Dish[] = [
@@ -153,7 +129,30 @@ export default function RomanticDinnerGame() {
   const [timeLeft, setTimeLeft] = useState(GAME_TIME);
   const [gameStarted, setGameStarted] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const router = useRouter();
+  // Audio setup
+  const [tastySound] = useState(() => new Audio("/sounds/tasty.mp3"));
+  const [deliciousSound] = useState(() => new Audio("/sounds/delicious.mp3"));
+  const [looseSound] = useState(() => new Audio("/sounds/loose.mp3"));
+
+  const playRandomSuccessSound = () => {
+    if (isPlayingSound) return;
+
+    isPlayingSound = true;
+    const sounds = [tastySound, deliciousSound];
+    const randomSound = sounds[Math.floor(Math.random() * sounds.length)];
+
+    randomSound.play();
+
+    // Reset the flag when the sound finishes playing
+    randomSound.onended = () => {
+      isPlayingSound = false;
+    };
+
+    // Failsafe: reset the flag after 1 second in case onended doesn't fire
+    setTimeout(() => {
+      isPlayingSound = false;
+    }, 1000);
+  };
 
   // Shuffle and select random dishes
   const initializeGame = useCallback(() => {
@@ -378,7 +377,10 @@ export default function RomanticDinnerGame() {
 
               {gameWon && (
                 /* Cantidad de platos correctos */
-                <GameWinFooter score={currentDishIndex * 200} label="una cena romántica" />
+                <GameWinFooter
+                  score={currentDishIndex * 200}
+                  label="una cena romántica"
+                />
               )}
             </div>
           )}

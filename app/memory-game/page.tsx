@@ -6,6 +6,8 @@ import { Minus, Square, X } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useState } from "react"
 
+export const dynamic = 'force-dynamic'
+
 interface Card {
   id: number
   emoji: string
