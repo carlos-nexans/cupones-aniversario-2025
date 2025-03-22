@@ -10,6 +10,7 @@ import { useCallback, useEffect, useState } from "react";
 
 export const dynamic = 'force-dynamic'
 
+
 const scorePerEmoji = {
   // all flowers emojis
   "🌸": 100,

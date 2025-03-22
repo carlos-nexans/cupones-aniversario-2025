@@ -9,6 +9,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 export const dynamic = 'force-dynamic'
 
+
 export default function RaspaGame() {
   const router = useRouter();
   const canvasRef = useRef<HTMLCanvasElement>(null);

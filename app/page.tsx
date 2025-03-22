@@ -7,6 +7,7 @@ import { FloatingHearts } from "@/components/floating-hearts"
 
 export const dynamic = 'force-dynamic'
 
+
 export default function Home() {
   const [authenticated, setAuthenticated] = useState(false)
 

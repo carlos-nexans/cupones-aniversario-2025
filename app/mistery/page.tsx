@@ -8,6 +8,7 @@ import { Minus, Square, X } from "lucide-react";
 import { useEffect, useState } from 'react';
 export const dynamic = 'force-dynamic'
 
+
 interface Question {
   id: number;
   question: string;
@@ -82,6 +83,10 @@ const allQuestions: Question[] = [
   }
 ];
 
+const getAudio = () => {
+  return new Audio('/sounds/quien-quer-ser-millonario.mp3');
+}
+
 export default function TriviaPage() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -89,7 +94,6 @@ export default function TriviaPage() {
   const [score, setScore] = useState(0);
   const [showResults, setShowResults] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
-  const [audio] = useState(new Audio('/sounds/quien-quer-ser-millonario.mp3'));
   const [showOptions, setShowOptions] = useState(false);
   const [visibleOptions, setVisibleOptions] = useState<number[]>([]);
   const isWinner = score === questions.length;
@@ -106,17 +110,17 @@ export default function TriviaPage() {
       setShowResults(false);
       setShowOptions(false);
       setVisibleOptions([]);
-      audio.play();
+      getAudio().play();
     }
-  }, [gameStarted, audio]);
+  }, [gameStarted]);
 
   useEffect(() => {
     if (currentQuestionIndex > 0) {
-      audio.play();
+      getAudio().play();
       setShowOptions(false);
       setVisibleOptions([]);
     }
-  }, [currentQuestionIndex, audio]);
+  }, [currentQuestionIndex]);
 
   useEffect(() => {
     if (!showOptions) {

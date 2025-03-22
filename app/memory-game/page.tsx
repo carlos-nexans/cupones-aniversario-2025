@@ -8,6 +8,7 @@ import { useCallback, useEffect, useState } from "react"
 
 export const dynamic = 'force-dynamic'
 
+
 interface Card {
   id: number
   emoji: string

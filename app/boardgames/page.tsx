@@ -9,6 +9,7 @@ import { useCoupons } from "@/hooks/use-coupons"
 
 export const dynamic = 'force-dynamic'
 
+
 const words = [
   "Amor",
   "Ternura",

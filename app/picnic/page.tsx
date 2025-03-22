@@ -9,6 +9,7 @@ import { useCoupons } from "@/hooks/use-coupons"
 
 export const dynamic = 'force-dynamic'
 
+
 interface Ant {
   id: number
   x: number

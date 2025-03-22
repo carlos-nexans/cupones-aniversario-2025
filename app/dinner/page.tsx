@@ -6,7 +6,8 @@ import { useCoupons } from "@/hooks/use-coupons";
 import { Minus, Square, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic'
+
 
 interface Ingredient {
   id: number;
@@ -115,6 +116,14 @@ const GAME_TIME = 6;
 const INGREDIENTS_TO_SHOW = 6;
 const INGREDIENTS_TO_SELECT = 3;
 
+const getTastySound = () => {
+  return new Audio("/sounds/tasty.mp3");
+};
+
+const getDeliciousSound = () => {
+  return new Audio("/sounds/delicious.mp3");
+};
+
 export default function RomanticDinnerGame() {
   const [dishes, setDishes] = useState<Dish[]>([]);
   const [currentDishIndex, setCurrentDishIndex] = useState(0);
@@ -130,15 +139,12 @@ export default function RomanticDinnerGame() {
   const [gameStarted, setGameStarted] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   // Audio setup
-  const [tastySound] = useState(() => new Audio("/sounds/tasty.mp3"));
-  const [deliciousSound] = useState(() => new Audio("/sounds/delicious.mp3"));
-  const [looseSound] = useState(() => new Audio("/sounds/loose.mp3"));
 
   const playRandomSuccessSound = () => {
     if (isPlayingSound) return;
 
     isPlayingSound = true;
-    const sounds = [tastySound, deliciousSound];
+    const sounds = [getTastySound(), getDeliciousSound()];
     const randomSound = sounds[Math.floor(Math.random() * sounds.length)];
 
     randomSound.play();
@@ -242,7 +248,6 @@ export default function RomanticDinnerGame() {
 
           if (!correct) {
             setGameOver(true);
-            looseSound.play();
           } else {
             // Move to next dish
             if (currentDishIndex < dishes.length - 1) {
