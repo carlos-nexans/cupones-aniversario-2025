@@ -82,13 +82,16 @@ const allQuestions: Question[] = [
 ];
 
 export default function TriviaPage() {
-  const {markCouponAsWon} = useCoupons();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [score, setScore] = useState(0);
   const [showResults, setShowResults] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
+  const [audio] = useState(new Audio('/sounds/quien-quer-ser-millonario.mp3'));
+  const [showOptions, setShowOptions] = useState(false);
+  const [visibleOptions, setVisibleOptions] = useState<number[]>([]);
+  const isWinner = score === questions.length;
 
   useEffect(() => {
     if (gameStarted) {
@@ -99,20 +102,37 @@ export default function TriviaPage() {
       setSelectedAnswer(null);
       setScore(0);
       setShowResults(false);
+      setShowOptions(false);
+      setVisibleOptions([]);
+      audio.play();
     }
-  }, [gameStarted]);
+  }, [gameStarted, audio]);
 
   useEffect(() => {
-    if (showResults) {
-      const requiredQuestions = questions.filter(q => !q.isOptional).length;
-      const requiredCorrect = questions.filter(q => !q.isOptional && q.correctAnswer === selectedAnswer).length;
-      const isWinner = requiredCorrect === requiredQuestions;
-      
-      if (isWinner) {
-        markCouponAsWon(3);
-      }
+    if (currentQuestionIndex > 0) {
+      audio.play();
+      setShowOptions(false);
+      setVisibleOptions([]);
     }
-  }, [showResults, questions, selectedAnswer, markCouponAsWon]);
+  }, [currentQuestionIndex, audio]);
+
+  useEffect(() => {
+    if (!showOptions) {
+      const timer = setTimeout(() => {
+        setShowOptions(true);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [showOptions]);
+
+  useEffect(() => {
+    if (showOptions && visibleOptions.length < (questions[currentQuestionIndex]?.options.length || 0)) {
+      const timer = setTimeout(() => {
+        setVisibleOptions(prev => [...prev, visibleOptions.length]);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [showOptions, visibleOptions, questions, currentQuestionIndex]);
 
   const handleAnswerSelect = (answer: string) => {
     setSelectedAnswer(answer);
@@ -201,10 +221,6 @@ export default function TriviaPage() {
   }
 
   if (showResults) {
-    const requiredQuestions = questions.filter(q => !q.isOptional).length;
-    const requiredCorrect = questions.filter(q => !q.isOptional && q.correctAnswer === selectedAnswer).length;
-    const isWinner = requiredCorrect === requiredQuestions;
-
     return (
       <div className="w-full max-w-2xl relative z-10 mx-auto mt-8">
         <div className="retro-window">
@@ -224,18 +240,15 @@ export default function TriviaPage() {
           </div>
           <div className="retro-window-content">
             <div className="relative w-full h-[400px] bg-kawaii-pink-100 rounded-lg overflow-hidden flex flex-col items-center justify-center">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4 special-text">
-                {isWinner ? "¡Felicitaciones! ¡Ganaste! 🎉" : "¡Casi lo logras! Intenta de nuevo 💪"}
-              </h2>
-              <p className="text-center mb-4 text-gray-700">
-                Respondiste correctamente {score} de {questions.length} preguntas
-              </p>
               {isWinner && (
                 <GameWinFooter score={1000} label="una cena romántica" />
               )}
               {!isWinner && (
                 <GameLoseFooter onRestart={handleRestart} />
               )}
+              {!isWinner && <p className="text-center mb-4 text-gray-700 mt-4">
+                Respondiste correctamente {score} de {questions.length} preguntas
+              </p>}
             </div>
           </div>
         </div>
@@ -278,7 +291,9 @@ export default function TriviaPage() {
                 <button
                   key={index}
                   onClick={() => handleAnswerSelect(option)}
-                  className={`w-full text-left p-3 rounded-lg transition-all duration-300 border-2 ${
+                  className={`w-full text-left p-3 rounded-lg transition-all duration-300 border-2 opacity-0 ${
+                    visibleOptions.includes(index) ? 'opacity-100' : ''
+                  } ${
                     selectedAnswer === option
                       ? 'bg-kawaii-pink-600 text-white border-kawaii-pink-700'
                       : 'bg-white text-gray-700 hover:bg-kawaii-pink-50 border-kawaii-pink-200'
