@@ -177,7 +177,7 @@ export default function CouponsScreen() {
     <div key={coupon.id} className="pixel-card mb-4">
       <div className="flex flex-col sm:flex-row sm:items-stretch gap-4">
         <div className="w-24 h-24 sm:h-auto relative">
-          {(coupon.won || coupon.status === "available") ? (
+          {(coupon.won) ? (
             <Image
               src={coupon.icon || "/placeholder.svg"}
               alt={coupon.name}
@@ -197,11 +197,10 @@ export default function CouponsScreen() {
         </div>
         <div className="flex-1">
           <h3 className="text-black mb-1">
-            {coupon.won || coupon.status === "available" ? coupon.name : "???"}
+            {coupon.won ? coupon.name : "???"}
           </h3>
           <p className="mb-2 text-black/70">
-            {coupon.won || coupon.status === "available" 
-              ? coupon.description 
+            {coupon.won ? coupon.description 
               : "Cupón misterioso"}
           </p>
           <div className="flex justify-between items-center">
