@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import GameWinFooter from "@/components/game-win-footer"
 import GameLoseFooter from "@/components/game-loose-footer"
+import { useCoupons } from "@/hooks/use-coupons"
 
 const words = [
   "Amor",
@@ -67,6 +68,7 @@ export default function BoardGamesPage() {
     gameStarted: false,
   });
   const router = useRouter();
+  const { markCouponAsWon } = useCoupons();
 
   const playClickSound = useCallback(() => {
     if (typeof Audio !== 'undefined') {
@@ -176,6 +178,12 @@ export default function BoardGamesPage() {
       window.removeEventListener("keydown", handleKeyPress);
     };
   }, [handleKeyPress, gameState.gameStarted]);
+
+  useEffect(() => {
+    if (gameState.gameOver && gameState.gameWon) {
+      markCouponAsWon(7)
+    }
+  }, [gameState.gameOver, gameState.gameWon, markCouponAsWon])
 
   const alphabet = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ".split("");
 

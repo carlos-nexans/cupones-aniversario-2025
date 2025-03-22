@@ -5,6 +5,7 @@ import { X, Minus, Square } from "lucide-react"
 import { useRouter } from "next/navigation"
 import GameWinFooter from "@/components/game-win-footer"
 import GameLoseFooter from "@/components/game-loose-footer"
+import { useCoupons } from "@/hooks/use-coupons"
 
 interface Ant {
   id: number
@@ -30,6 +31,7 @@ export default function PicnicGamePage() {
   const [gameStarted, setGameStarted] = useState(false)
   const gameAreaRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
+  const { markCouponAsWon } = useCoupons()
 
   const spawnAnt = useCallback(() => {
     if (gameOver || !gameStarted) return
@@ -138,6 +140,12 @@ export default function PicnicGamePage() {
       setGameOver(true)
     }
   }, [availableSnacks])
+
+  useEffect(() => {
+    if (gameOver && score > 0) {
+      markCouponAsWon(5)
+    }
+  }, [gameOver, score, markCouponAsWon])
 
   const handleGameEnd = useCallback(() => {
     console.log("Final score:", score)

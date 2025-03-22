@@ -92,6 +92,7 @@ export default function TriviaPage() {
   const [showOptions, setShowOptions] = useState(false);
   const [visibleOptions, setVisibleOptions] = useState<number[]>([]);
   const isWinner = score === questions.length;
+  const { markCouponAsWon } = useCoupons();
 
   useEffect(() => {
     if (gameStarted) {
@@ -150,6 +151,9 @@ export default function TriviaPage() {
         setSelectedAnswer(null);
       } else {
         setShowResults(true);
+        if (selectedAnswer === currentQuestion.correctAnswer && score + 1 === questions.length) {
+          markCouponAsWon(8)
+        }
       }
     }
   };

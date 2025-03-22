@@ -54,7 +54,7 @@ export default function NatureGamePage() {
   const { markCouponAsWon } = useCoupons();
 
   useEffect(() => {
-    markCouponAsWon(2);
+    markCouponAsWon(6);
   }, [score, gameOver]);
 
   const playGoodSound = () => {
