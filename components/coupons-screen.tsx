@@ -168,7 +168,7 @@ export default function CouponsScreen() {
       coupons.find((c) => c.id === id)?.name
     }`;
     window.open(
-      `https://wa.me/+5491126941371?text=${encodeURIComponent(message)}`,
+      `/api/claim?message=${encodeURIComponent(message)}`,
       "_blank"
     );
   };
