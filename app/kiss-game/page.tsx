@@ -21,7 +21,7 @@ interface Emoji {
 
 const initialSpawnRate = 3500;
 const minimalSpawnRate = 1000;
-const gameDuration = 1;
+const gameDuration = 45;
 const initialDisappearTime = 4000;
 const minimalDisappearTime = 500;
 
@@ -225,7 +225,7 @@ export default function KissGamePage() {
                 <GameWinFooter score={score} />
               )}
               {gameOver && score <= 0 && (
-                <GameLoseFooter score={score} onRestart={() => {
+                <GameLoseFooter onRestart={() => {
                   setGameOver(false)
                   setScore(0)
                   setTimeLeft(gameDuration)

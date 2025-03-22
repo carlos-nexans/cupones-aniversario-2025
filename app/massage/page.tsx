@@ -226,7 +226,7 @@ export default function RaspaGame() {
             )}
           </div>
 
-          {revealed && <GameWinFooter />}
+          {revealed && <GameWinFooter score={500} />}
         </div>
       </div>
     </div>

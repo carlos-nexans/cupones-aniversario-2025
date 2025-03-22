@@ -3,11 +3,15 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import JSConfetti from "js-confetti";
-
+import { useCoupons } from "@/hooks/use-coupons";
 export default function GameWinFooter({ score }: { score?: number }) {
+  const { addPoints } = useCoupons();
   useEffect(() => {
     const playVictorySound = async () => {
       try {
+        if (score) {
+          addPoints(score);
+        }
         const audio = new Audio("/sounds/tadaa.mp3");
         audio.volume = 0.5; // Set volume to 50%
         await audio.play().catch((error) => {
@@ -23,7 +27,7 @@ export default function GameWinFooter({ score }: { score?: number }) {
         jsConfetti.addConfetti();
     }, 900)
     playVictorySound();
-  }, []);
+  }, [score]);
 
   return (
     <div className="mt-4 text-center">

@@ -53,7 +53,7 @@ const getInitialState = (): CouponsState => {
 }
 
 export const useCoupons = () => {
-  const [state, setState] = useState<CouponsState>(getInitialState)
+  const [state, setState] = useState<CouponsState>(() => getInitialState())
 
   // Persist state changes to localStorage
   useEffect(() => {
@@ -65,18 +65,20 @@ export const useCoupons = () => {
 
   // Add points to the total
   const addPoints = (points: number) => {
-    setState((prev) => ({
-      ...prev,
-      totalPoints: prev.totalPoints + points,
-    }))
-  }
-
-  // Subtract points from the total
-  const subtractPoints = (points: number) => {
-    setState((prev) => ({
-      ...prev,
-      totalPoints: Math.max(0, prev.totalPoints - points),
-    }))
+    if (points <= 0) return;
+    
+    setState((prev) => {
+      const newState = {
+        ...prev,
+        totalPoints: prev.totalPoints + points,
+      };
+      // Immediately save to localStorage to prevent race conditions
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        ...newState,
+        wonCoupons: Array.from(newState.wonCoupons),
+      }));
+      return newState;
+    });
   }
 
   // Mark a coupon as won/active
@@ -92,21 +94,11 @@ export const useCoupons = () => {
     return state.wonCoupons.has(couponId)
   }
 
-  // Reset all state
-  const resetState = () => {
-    setState({
-      totalPoints: 100,
-      wonCoupons: new Set(),
-    })
-  }
-
   return {
     totalPoints: state.totalPoints,
     wonCoupons: state.wonCoupons,
     addPoints,
-    subtractPoints,
     markCouponAsWon,
     isCouponWon,
-    resetState,
   }
 }
