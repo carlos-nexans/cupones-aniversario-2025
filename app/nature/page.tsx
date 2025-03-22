@@ -96,30 +96,6 @@ export default function NatureGamePage() {
     ctx.fill()
   }, [creatures, netPos])
 
-  // Load confetti script dynamically
-  useEffect(() => {
-    if (!confettiLoadedRef.current) {
-      const script = document.createElement("script")
-      script.src = "confetti"
-      script.async = true
-      script.onload = () => {
-        confettiLoadedRef.current = true
-      }
-      document.body.appendChild(script)
-
-      return () => {
-        document.body.removeChild(script)
-      }
-    }
-  }, [])
-
-  // Function to safely call confetti
-  const launchConfetti = useCallback(() => {
-    if (window.confetti) {
-      window.// confetti
-    }
-  }, [])
-
   // Spawn creatures
   const spawnCreature = useCallback(() => {
     if (gameOver) return
@@ -236,7 +212,7 @@ export default function NatureGamePage() {
 
       setScore((prev) => prev + scoreChange)
     },
-    [gameOver, launchConfetti],
+    [gameOver],
   )
 
   // Use requestAnimationFrame for the movement & drawing
@@ -273,9 +249,6 @@ export default function NatureGamePage() {
     const timerId = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
-          if (confettiLoadedRef.current) {
-            launch// confetti
-          }
           setGameOver(true)
           return 0
         }
@@ -283,7 +256,7 @@ export default function NatureGamePage() {
       })
     }, 1000)
     return () => clearInterval(timerId)
-  }, [gameOver, launchConfetti])
+  }, [gameOver])
 
   // Resize for device pixel ratio => crisp emojis
   useEffect(() => {

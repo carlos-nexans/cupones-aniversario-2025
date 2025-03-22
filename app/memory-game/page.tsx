@@ -40,8 +40,10 @@ export default function MemoryCardGame() {
 
   // Initialize the game with all cards face down
   useEffect(() => {
-    initializeGame()
-  }, [])
+    if (gameStarted) {
+      initializeGame()
+    }
+  }, [gameStarted])
 
   const initializeGame = () => {
     const shuffledEmojis = [...emojis, ...emojis].sort(() => Math.random() - 0.5)
@@ -56,7 +58,6 @@ export default function MemoryCardGame() {
     setFlippedCards([])
     setGameOver(false)
     setScore(initialScore)
-    setGameStarted(true)
   }
 
   const handleCardClick = useCallback(
@@ -164,26 +165,40 @@ export default function MemoryCardGame() {
           </div>
         </div>
         <div className="retro-window-content">
-          <div className="flex justify-between items-center mb-4">
-            <div className="text-2xl font-bold">Puntuación: {score}</div>
-            {gameOver && <div className="text-xl font-bold text-kawaii-pink-600">¡Juego terminado!</div>}
-          </div>
-          <div className="grid grid-cols-4 gap-4 bg-kawaii-pink-100 p-4 rounded-lg">
-            {cards.map((card) => (
+          {!gameStarted ? (
+            <div className="relative w-full h-[400px] bg-kawaii-pink-100 rounded-lg overflow-hidden flex flex-col items-center justify-center">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4 special-text">Pon a prueba tu memoria para ganar</h2>
               <button
-                key={card.id}
-                className={`w-20 h-20 flex items-center justify-center text-3xl rounded-lg transition-all duration-300 ease-in-out transform hover:scale-110 ${
-                  card.isFlipped || card.isMatched ? "bg-white" : "bg-gray-400"
-                }`}
-                onClick={() => handleCardClick(card.id)}
-                disabled={card.isMatched || gameOver || (flippedCards.length === 2 && !card.isFlipped)}
+                onClick={() => setGameStarted(true)}
+                className="pixel-button"
               >
-                {card.isFlipped || card.isMatched ? card.emoji : "?"}
+                Empezar
               </button>
-            ))}
-          </div>
-          {gameOver && (
-            <GameWinFooter score={score} />
+            </div>
+          ) : (
+            <>
+              <div className="flex justify-between items-center mb-4">
+                <div className="text-2xl font-bold">Puntuación: {score}</div>
+                {gameOver && <div className="text-xl font-bold text-kawaii-pink-600">¡Juego terminado!</div>}
+              </div>
+              <div className="grid grid-cols-4 gap-4 bg-kawaii-pink-100 p-4 rounded-lg">
+                {cards.map((card) => (
+                  <button
+                    key={card.id}
+                    className={`w-20 h-20 flex items-center justify-center text-3xl rounded-lg transition-all duration-300 ease-in-out transform hover:scale-110 ${
+                      card.isFlipped || card.isMatched ? "bg-white" : "bg-gray-400"
+                    }`}
+                    onClick={() => handleCardClick(card.id)}
+                    disabled={card.isMatched || gameOver || (flippedCards.length === 2 && !card.isFlipped)}
+                  >
+                    {card.isFlipped || card.isMatched ? card.emoji : "?"}
+                  </button>
+                ))}
+              </div>
+              {gameOver && (
+                <GameWinFooter score={score} />
+              )}
+            </>
           )}
         </div>
       </div>

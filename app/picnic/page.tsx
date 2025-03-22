@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback, useRef } from "react"
 import { X, Minus, Square } from "lucide-react"
 import { useRouter } from "next/navigation"
-import confetti from "confetti"
+import GameWinFooter from "@/components/game-win-footer"
+import GameLoseFooter from "@/components/game-loose-footer"
 
 interface Ant {
   id: number
@@ -26,11 +27,12 @@ export default function PicnicGamePage() {
   const [timeLeft, setTimeLeft] = useState(gameDuration)
   const [availableSnacks, setAvailableSnacks] = useState([...snacks])
   const [antsTouched, setAntsTouched] = useState(0)
+  const [gameStarted, setGameStarted] = useState(false)
   const gameAreaRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
 
   const spawnAnt = useCallback(() => {
-    if (gameOver) return
+    if (gameOver || !gameStarted) return
 
     const side = Math.floor(Math.random() * 4)
     let x, y
@@ -60,9 +62,10 @@ export default function PicnicGamePage() {
     }
 
     setAnts((prevAnts) => [...prevAnts, newAnt])
-  }, [gameOver, availableSnacks.length])
+  }, [gameOver, availableSnacks.length, gameStarted])
 
   const moveAnts = useCallback(() => {
+    if (!gameStarted) return
     setAnts(
       (prevAnts) =>
         prevAnts
@@ -96,7 +99,7 @@ export default function PicnicGamePage() {
           })
           .filter(Boolean) as Ant[],
     )
-  }, [])
+  }, [gameStarted])
 
   const handleAntClick = useCallback((antId: number) => {
     setAnts((prevAnts) => prevAnts.filter((ant) => ant.id !== antId))
@@ -104,17 +107,17 @@ export default function PicnicGamePage() {
   }, [])
 
   useEffect(() => {
-    if (gameOver) return
+    if (gameOver || !gameStarted) return
     const spawnInterval = setInterval(spawnAnt, antSpawnInterval)
     const moveInterval = setInterval(moveAnts, 50)
     return () => {
       clearInterval(spawnInterval)
       clearInterval(moveInterval)
     }
-  }, [spawnAnt, moveAnts, gameOver])
+  }, [spawnAnt, moveAnts, gameOver, gameStarted])
 
   useEffect(() => {
-    if (gameOver) return
+    if (gameOver || !gameStarted) return
     const timerInterval = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
@@ -128,7 +131,7 @@ export default function PicnicGamePage() {
     }, 1000)
 
     return () => clearInterval(timerInterval)
-  }, [gameOver])
+  }, [gameOver, gameStarted])
 
   useEffect(() => {
     if (availableSnacks.length === 0) {
@@ -140,6 +143,16 @@ export default function PicnicGamePage() {
     console.log("Final score:", score)
     router.push("/")
   }, [score, router])
+
+  const startGame = () => {
+    setGameStarted(true)
+    setScore(0)
+    setTimeLeft(gameDuration)
+    setAvailableSnacks([...snacks])
+    setAnts([])
+    setAntsTouched(0)
+    setGameOver(false)
+  }
 
   return (
     <div className="w-full max-w-2xl relative z-10 mx-auto mt-8">
@@ -159,36 +172,55 @@ export default function PicnicGamePage() {
           </div>
         </div>
         <div className="retro-window-content">
-          <div className="flex justify-between items-center mb-4">
-            <div className="text-2xl font-bold">Puntuación: {score}</div>
-            <div className="text-2xl font-bold">Tiempo: {timeLeft}s</div>
-            {gameOver && <div className="text-xl font-bold text-kawaii-pink-600">¡Juego terminado!</div>}
-          </div>
-          <div ref={gameAreaRef} className="relative w-full h-[400px] bg-kawaii-yellow-100 rounded-lg overflow-hidden">
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-4xl">
-              {availableSnacks.join("")}
-            </div>
-            {ants.map((ant) => (
+          {!gameStarted ? (
+            <div className="relative w-full h-[400px] bg-kawaii-yellow-100 rounded-lg overflow-hidden flex flex-col items-center justify-center">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4 special-text">¡Protege tu picnic de las hormigas!</h2>
               <button
-                key={ant.id}
-                className="absolute text-2xl transition-all duration-50 ease-linear transform hover:scale-125 cursor-pointer"
-                style={{ left: `${ant.x}%`, top: `${ant.y}%` }}
-                onClick={() => handleAntClick(ant.id)}
+                onClick={startGame}
+                className="pixel-button"
               >
-                🐜
-              </button>
-            ))}
-          </div>
-          <div className="mt-4 text-center">
-            <p className="text-lg mb-2">¡Protege tu picnic! Haz clic en las hormigas para eliminarlas.</p>
-          </div>
-          {gameOver && (
-            <div className="mt-4 text-center">
-              <p className="text-xl mb-2">¡Juego terminado! Tu puntuación final es: {score}</p>
-              <button className="pixel-button" onClick={handleGameEnd}>
-                Volver a los cupones
+                Empezar
               </button>
             </div>
+          ) : (
+            <>
+              <div className="flex justify-between items-center mb-4">
+                <div className="text-2xl font-bold">Puntuación: {score}</div>
+                <div className="text-2xl font-bold">Tiempo: {timeLeft}s</div>
+                {gameOver && <div className="text-xl font-bold text-kawaii-pink-600">¡Juego terminado!</div>}
+              </div>
+              <div ref={gameAreaRef} className="relative w-full h-[400px] bg-kawaii-yellow-100 rounded-lg overflow-hidden">
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-4xl">
+                  {availableSnacks.join("")}
+                </div>
+                {ants.map((ant) => (
+                  <button
+                    key={ant.id}
+                    className="absolute text-2xl transition-all duration-50 ease-linear transform hover:scale-125 cursor-pointer"
+                    style={{ left: `${ant.x}%`, top: `${ant.y}%` }}
+                    onClick={() => handleAntClick(ant.id)}
+                  >
+                    🐜
+                  </button>
+                ))}
+              </div>
+              <div className="mt-4 text-center">
+                <p className="text-lg mb-2">¡Protege tu picnic! Haz clic en las hormigas para eliminarlas.</p>
+              </div>
+              {gameOver && score > 0 && (
+                <GameWinFooter score={score} />
+              )}
+              {gameOver && score <= 0 && (
+                <GameLoseFooter onRestart={() => {
+                  setGameOver(false)
+                  setScore(0)
+                  setTimeLeft(gameDuration)
+                  setAvailableSnacks([...snacks])
+                  setAnts([])
+                  setAntsTouched(0)
+                }} />
+              )}
+            </>
           )}
         </div>
       </div>
