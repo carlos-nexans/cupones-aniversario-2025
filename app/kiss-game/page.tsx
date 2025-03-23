@@ -24,7 +24,7 @@ interface Emoji {
 
 const initialSpawnRate = 3500;
 const minimalSpawnRate = 1000;
-const gameDuration = 5;
+const gameDuration = 45;
 const initialDisappearTime = 4000;
 const minimalDisappearTime = 500;
 
@@ -40,7 +40,7 @@ export default function KissGamePage() {
   const { markCouponAsWon } = useCoupons()
 
   useEffect(() => {
-    if (score >= 0 && gameOver) {
+    if (score > 0 && gameOver) {
       markCouponAsWon(1, score)
     }
   }, [score, gameOver])
