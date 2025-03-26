@@ -183,8 +183,9 @@ export default function KissGamePage() {
           {gameStarted ? (
             <>
               <div className="flex justify-between items-center mb-4">
-                <div className="text-2xl font-bold">Puntuación: {score}</div>
-                <div className="text-2xl font-bold">Tiempo: {timeLeft}s</div>
+                {!gameOver &&
+                <><div className="text-2xl font-bold">Puntuación: {score}</div>
+                <div className="text-2xl font-bold">Tiempo: {timeLeft}s</div></>}
                 {gameOver && <div className="text-xl font-bold text-kawaii-pink-600">¡Juego terminado!</div>}
               </div>
               <div className="relative w-full h-[400px] bg-kawaii-pink-100 rounded-lg overflow-hidden">

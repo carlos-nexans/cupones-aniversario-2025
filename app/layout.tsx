@@ -21,7 +21,11 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400..800&display=swap" rel="stylesheet" />
       </head>
-      <body>{children}</body>
+      <body>
+        <main className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
+        {children}
+        </main>
+        </body>
     </html>
   )
 }

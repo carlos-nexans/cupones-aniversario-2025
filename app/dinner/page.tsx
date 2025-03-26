@@ -162,6 +162,12 @@ export default function RomanticDinnerGame() {
 
   // Shuffle and select random dishes
   const initializeGame = useCallback(() => {
+    // Clear any existing timer
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+
     // Shuffle dishes array
     const shuffledDishes = [...allDishes].sort(() => 0.5 - Math.random());
 
@@ -175,6 +181,32 @@ export default function RomanticDinnerGame() {
     setTimeLeft(GAME_TIME);
     setSelectedIngredients([]);
     setGameStarted(true);
+
+    // Set up ingredients for the first dish
+    const requiredIngredients = allIngredients.filter((ingredient) =>
+      selectedDishes[0].requiredIngredients.includes(ingredient.name)
+    );
+    const otherIngredientsPool = allIngredients
+      .filter(
+        (ingredient) => !selectedDishes[0].requiredIngredients.includes(ingredient.name)
+      )
+      .slice(0, INGREDIENTS_TO_SHOW - requiredIngredients.length);
+    const ingredientsToShow = [...requiredIngredients, ...otherIngredientsPool];
+    ingredientsToShow.sort(() => 0.5 - Math.random());
+
+    setAvailableIngredients(ingredientsToShow);
+
+    // Start the timer immediately
+    timerRef.current = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timerRef.current as NodeJS.Timeout);
+          setGameOver(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
   }, []);
 
   // Set up ingredients for a dish
@@ -197,7 +229,7 @@ export default function RomanticDinnerGame() {
     setSelectedIngredients([]);
     setTimeLeft(GAME_TIME);
 
-    // Reset the timer
+    // Reset and start the timer
     if (timerRef.current) {
       clearInterval(timerRef.current);
     }
@@ -205,7 +237,6 @@ export default function RomanticDinnerGame() {
     timerRef.current = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
-          // Time's up for this dish
           clearInterval(timerRef.current as NodeJS.Timeout);
           setGameOver(true);
           return 0;
@@ -275,14 +306,16 @@ export default function RomanticDinnerGame() {
 
   // Start the game
   useEffect(() => {
-    initializeGame();
-
     return () => {
       if (timerRef.current) {
         clearInterval(timerRef.current);
       }
     };
-  }, [initializeGame]);
+  }, []);
+
+  const handleStartGame = () => {
+    initializeGame();
+  };
 
   const { markCouponAsWon } = useCoupons();
 
@@ -310,83 +343,96 @@ export default function RomanticDinnerGame() {
           </div>
         </div>
         <div className="retro-window-content">
-          <div className="flex justify-between items-center mb-4">
-            <div className="text-2xl font-bold">
-              Plato {currentDishIndex + 1} de {dishes.length}
-            </div>
-            <div className="text-2xl font-bold">Tiempo: {timeLeft}s</div>
-          </div>
-
-          {gameStarted && dishes.length > 0 && (
-            <div className="flex flex-col items-center">
-              {/* Current dish */}
-              <div className="text-6xl mb-4">
-                {dishes[currentDishIndex].emoji}
-              </div>
-              <div className="text-2xl font-bold mb-6">
-                {dishes[currentDishIndex].name}
+          {gameStarted ? (
+            <>
+              <div className="flex justify-between items-center mb-4">
+                <div className="text-2xl font-bold">
+                  Plato {currentDishIndex + 1} de {dishes.length}
+                </div>
+                <div className="text-2xl font-bold">Tiempo: {timeLeft}s</div>
               </div>
 
-              {/* Selected ingredients */}
-              <div className="flex justify-center gap-4 mb-6">
-                {Array.from({ length: INGREDIENTS_TO_SELECT }).map(
-                  (_, index) => (
-                    <div
-                      key={`slot-${index}`}
-                      className="w-16 h-16 border-2 border-dashed border-gray-400 rounded-lg flex items-center justify-center text-3xl"
-                    >
-                      {selectedIngredients[index]?.emoji || ""}
-                    </div>
-                  )
-                )}
-              </div>
+              {dishes.length > 0 && (
+                <div className="flex flex-col items-center">
+                  {/* Current dish */}
+                  <div className="text-6xl mb-4">
+                    {dishes[currentDishIndex].emoji}
+                  </div>
+                  <div className="text-2xl font-bold mb-6">
+                    {dishes[currentDishIndex].name}
+                  </div>
 
-              {/* Available ingredients */}
-              <div className="grid grid-cols-3 gap-4 mb-4">
-                {availableIngredients.map((ingredient) => (
-                  <button
-                    key={ingredient.id}
-                    className={`p-2 border-2 ${
-                      selectedIngredients.some(
-                        (ing) => ing.id === ingredient.id
+                  {/* Selected ingredients */}
+                  <div className="flex justify-center gap-4 mb-6">
+                    {Array.from({ length: INGREDIENTS_TO_SELECT }).map(
+                      (_, index) => (
+                        <div
+                          key={`slot-${index}`}
+                          className="w-16 h-16 border-2 border-dashed border-gray-400 rounded-lg flex items-center justify-center text-3xl"
+                        >
+                          {selectedIngredients[index]?.emoji || ""}
+                        </div>
                       )
-                        ? "border-pink-500 bg-pink-100"
-                        : "border-gray-300 hover:border-pink-300 hover:bg-pink-50"
-                    } rounded-lg flex flex-col items-center justify-center transition-colors`}
-                    onClick={() => handleIngredientClick(ingredient)}
-                    disabled={
-                      gameOver ||
-                      selectedIngredients.length >= INGREDIENTS_TO_SELECT ||
-                      selectedIngredients.some(
-                        (ing) => ing.id === ingredient.id
-                      )
-                    }
-                  >
-                    <span className="text-2xl mb-1">{ingredient.emoji}</span>
-                    <span className="text-sm font-medium">
-                      {ingredient.name}
-                    </span>
-                  </button>
-                ))}
-              </div>
+                    )}
+                  </div>
 
-              {/* Game status */}
-              {gameOver && !gameWon && (
-                <GameLoseFooter onRestart={initializeGame}>
-                  <p className="mb-4">
-                    Los ingredientes correctos eran:{" "}
-                    {dishes[currentDishIndex].requiredIngredients.join(", ")}
-                  </p>
-                </GameLoseFooter>
-              )}
+                  {/* Available ingredients */}
+                  <div className="grid grid-cols-3 gap-4 mb-4">
+                    {availableIngredients.map((ingredient) => (
+                      <button
+                        key={ingredient.id}
+                        className={`p-2 border-2 ${
+                          selectedIngredients.some(
+                            (ing) => ing.id === ingredient.id
+                          )
+                            ? "border-pink-500 bg-pink-100"
+                            : "border-gray-300 hover:border-pink-300 hover:bg-pink-50"
+                        } rounded-lg flex flex-col items-center justify-center transition-colors`}
+                        onClick={() => handleIngredientClick(ingredient)}
+                        disabled={
+                          gameOver ||
+                          selectedIngredients.length >= INGREDIENTS_TO_SELECT ||
+                          selectedIngredients.some(
+                            (ing) => ing.id === ingredient.id
+                          )
+                        }
+                      >
+                        <span className="text-2xl mb-1">{ingredient.emoji}</span>
+                        <span className="text-sm font-medium">
+                          {ingredient.name}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
 
-              {gameWon && (
-                /* Cantidad de platos correctos */
-                <GameWinFooter
-                  score={currentDishIndex * 200}
-                  label="una cena romántica"
-                />
+                  {/* Game status */}
+                  {gameOver && !gameWon && (
+                    <GameLoseFooter onRestart={initializeGame}>
+                      <p className="mb-4">
+                        Los ingredientes correctos eran:{" "}
+                        {dishes[currentDishIndex].requiredIngredients.join(", ")}
+                      </p>
+                    </GameLoseFooter>
+                  )}
+
+                  {gameWon && (
+                    <GameWinFooter
+                      score={currentDishIndex * 200}
+                      label="una cena romántica"
+                    />
+                  )}
+                </div>
               )}
+            </>
+          ) : (
+            <div className="relative w-full h-[400px] bg-kawaii-pink-100 rounded-lg overflow-hidden flex flex-col items-center justify-center">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4 special-text">Piensa rápido las recetas de cada plato</h2>
+              <button
+                onClick={handleStartGame}
+                className="pixel-button"
+              >
+                Empezar
+              </button>
             </div>
           )}
         </div>

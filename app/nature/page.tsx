@@ -80,7 +80,6 @@ export default function NatureGamePage() {
     if (gameOver) return;
 
     let random = Math.random();
-    debugger;
     const type =
       emojiTypes[
         Math.floor(random * Object.keys(scorePerEmoji).length)
