@@ -91,7 +91,7 @@ const coupons: Coupon[] = [
     id: 7,
     name: "Una tarde de juegos",
     description: "Canjeable por una tarde de juegos juntos",
-    unlockDate: "2025-08-31",
+    unlockDate: "2025-08-30",
     expiryDate: "2025-09-30",
     points: 200,
     icon: "/images/boardgames.webp",
